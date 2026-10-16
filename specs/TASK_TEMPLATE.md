@@ -15,7 +15,7 @@ Output rules: specs = prose, tables, struct layouts, constants, short pseudocode
 Update NOTES.md continuously (after each finding) — your context may be compacted at any moment.
 Finish with a final message: list of produced files, what's verified, what's uncertain.
 
-## Sub-agents (allowed, encouraged for independent subsystems)
+## Sub-agents — CURRENTLY DISABLED (do not spawn; provider rate limits). Rules below apply only if re-enabled.
 You may spawn your own sub-agents (T3 `delegate_task`, or your native task tool) — use the SAME provider/model as yourself, reasoning max.
 - Give each sub-agent: this preamble path, the relevant brief section, and its own workdir `<SPEC_DIR>/sub/<topic>/`.
 - Ghidra projects cannot be opened by two processes: each sub-agent first copies the project

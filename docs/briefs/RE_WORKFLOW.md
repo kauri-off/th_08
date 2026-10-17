@@ -6,6 +6,7 @@ All paths relative to the repo root. Ghidra project: `re/ghidra/th08.gpr` (pre-a
 - `redump.sh` — apply `re/symbols.csv` to Ghidra, re-export `re/extracted/all_decomp.c` (`===== name @ addr`), `callgraph.tsv`, `globals_xref.tsv` (~50 s). Run after every batch of new symbols and at the start of a run if all_decomp.c is older than symbols.csv.
 - `fn.sh <addr|name>...` — print function(s) from the dump (0.03 s; the default way to read code); `fnc.sh` — same plus `_DAT_` constants annotated as f32/i32.
 - Callers/callees: grep `re/extracted/callgraph.tsv` (addr, name, callers, callees) before running any Ghidra script. Indirect calls (func-chain, vtables, effect/bomb tables) are not listed.
+- `structxref.py` (~10 s) — accesses through struct base pointers (what globals_xref misses); `disx.py` — disassembly; `coverage.py` — spec coverage table (specs/COVERAGE.md).
 - `rd.py <va> [n] [h|f|i|d|s]` — read exe bytes.
 - `gh.sh <Script.java> [args]` — run a Ghidra script from `re/ghidra_scripts/` (Decompile, Xrefs, Strings, ApplySymbolsOpus, DumpAll2, Disasm…). One Ghidra process at a time (project lock), ~5 s per call: batch addresses.
 - Format dumpers (anm, ecl, std, msg, sht, rpy, scoredat, cfg, end, musiccmt, bgm, dat) — all must keep reporting 0 problems.

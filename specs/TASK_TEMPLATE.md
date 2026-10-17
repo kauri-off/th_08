@@ -9,7 +9,7 @@ Mandatory reading before any work, in this order:
 2. `<SPEC_DIR>/NOTES.md`, `<SPEC_DIR>/symbols.csv`, `<SPEC_DIR>/structs.md` if they exist — resume from them.
 3. The phase brief named in the task.
 
-Tools: (1) REA MCP (reverse-engineer-anything skill) with the **ghidra** provider — now working (JDK 21 configured); Hopper is unreliable, don't use it.
+Tools: use whatever gets the best result — REA MCP (ghidra provider, also runtime tools like Frida/gdb), the Ghidra project at `<SPEC_DIR>/ghidra/th08.gpr` via `specs/ghidra_tools/gh.sh`, the decompiled dump + scripts in `<SPEC_DIR>/tools/`, Python. Persist names in symbols.csv. NO web search/fetch and NO remembered third-party knowledge (thtk, thpatch, touhou-doc, community decompilations): derive every fact from th08.exe and the data files.
 (2) Ghidra project at `<SPEC_DIR>/ghidra/th08.gpr` via `specs/ghidra_tools/gh.sh` — persistent names (symbols.csv). REA annotations are session-scoped, so persist names in symbols.csv either way. Python for verification tools (`<SPEC_DIR>/tools/`). NO web search/fetch and NO remembered third-party knowledge (thtk, thpatch, touhou-doc, community decompilations): derive every fact from th08.exe and the data files.
 
 Output rules: specs = prose, tables, struct layouts, constants, short pseudocode. Never paste decompiled code. Mark VERIFIED/INFERRED.

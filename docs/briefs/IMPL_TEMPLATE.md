@@ -18,7 +18,7 @@ FORBIDDEN (clean-room boundary):
 Engineering rules:
 - Rust 2024; keep the existing architecture (winit + wgpu + cpal, async `assets::Source`, wasm build must keep compiling:
   `cargo check --release --lib --target wasm32-unknown-unknown`).
-- Follow the code style already in `src/`: no comment blocks, at most one short line where really needed.
+- Follow the code style already in `src/`: no comment blocks, at most one short line where really needed. The code is `cargo fmt`-formatted (default config): run `cargo fmt` before finishing.
 - Verify visually/behaviourally: `TH08_SHOT=<frame>` writes `/tmp/th08_shot.png`; add debug env vars/bins if useful.
   Run with `RUST_LOG=warn,wgpu_hal=off`. Look at the screenshots you produce.
 - Do NOT run git (the coordinator commits). Do NOT spawn sub-agents.

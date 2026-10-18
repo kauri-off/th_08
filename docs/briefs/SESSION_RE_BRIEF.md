@@ -19,3 +19,11 @@ Deliverables:
 3. Document in `sessions/README.md` (user-facing: how to record, where files go, limits such as the pause key or alt-tab)
    and in `specs/data/drawlog/README.md` (session file formats for the port side); update re/NOTES.md and TOOLING_REPORT.
 No git, no src/.
+
+User-facing requirements (agreed with the user):
+- Use the PortProton wine (`~/PortProton/data/dist/WINE_LG_11-1/bin/wine`, prefix `~/PortProton/data/prefixes/DEFAULT`) on the
+  user's real display (not Xvfb), on the clean game copy `re/work/game` with the proxy `d3d8.dll` + `WINEDLLOVERRIDES=d3d8=n,b`.
+  Never write to the user's game folder in ~/Downloads.
+- Real input: keyboard/gamepad via DirectInput as in normal play (do not use `nodik` in record mode).
+- Option `--score <path>` copies a given score.dat (e.g. the user's own) into the game copy before launch; default = current copy.
+- Music/SE may stay on in record mode (cfg patches only where needed for the probe); say what the script changes.

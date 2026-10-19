@@ -1,0 +1,6 @@
+# IMPL20: boss phase transition, full noclip run, Player_Die order
+
+Deliverables:
+1. Boss phase 1 → 2 transition is broken in the port (user report; most visible bug). Find and fix it for the stage bosses using the specs (07 ECL, boss/spell sections) and the `fullrun_noclip` session: run the port on it (`session specs/data/sessions/fullrun_noclip`, noclip is applied from meta.txt) and compare the trace's boss/spell/enemies/bullets columns around each boss's first phase change with the original's trace (the run is not in sync, so compare behaviour: timing after the phase starts, HP/timeout switch, bullet clear, spell start). Fix all bosses that share the cause; list any boss that still looks wrong.
+2. `fullrun_noclip` as a smoke test: the port must play the whole session (stages 1–6, ending) without panics or hangs; add a test (can be `#[ignore]` if slow, state the runtime) and report how far the port gets per stage compared to the original's stage/scene changes in the trace.
+3. `specs/09_player.md` §6.1 now gives the exact Player_Die order (state check before the decoy scramble; noclip return placement). Make the port match, including the `debug_invuln` path. Re-measure demos, `session_sync`, menus; only raise thresholds or state why. Questions go to `docs/briefs/IMPL20_QUESTIONS.md`.

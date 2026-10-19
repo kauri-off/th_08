@@ -25,5 +25,5 @@ Specs to cite: 06 (STD), 09 (player), 11 (flow), 13 (effects), 14 (bombs/options
   `// SPEC-GAP:` and list it under "uncited code" in `docs/briefs/IMPL25_QUESTIONS.md`.
 - **Do not restate code.** Write no comment on obvious lines.
 
-Batch A (`src/ecl.rs` etc., commit 090ee21) is the model for style and density. Also, unlike batch A: when the code and the
+Batch A (`src/ecl.rs` etc., commit 090ee21) is the model for style and density. As in batch A, when the code and the
 numbered spec disagree, do not fix the code; write a SPEC-GAP and a question in IMPL25_QUESTIONS.

@@ -25,3 +25,9 @@ After every compaction or restart: re-read NOTES.md, symbols.csv, structs.md fir
 
 ## Output rules
 Specs contain prose, tables, struct layouts, constants and short pseudocode describing BEHAVIOUR. Never paste decompiled code. Mark claims VERIFIED / INFERRED.
+
+## Where answers go
+The numbered specs `specs/00–16_*.md` plus `specs/structs.md` are the only source of truth: every answer is written
+into the spec section itself. A per-task changelog `specs/changelog/answers_<task>.md` lists only the changed
+sections and the evidence (runs, `specs/data/qNN/`), never a fact that is not also in a spec. Merge audit of the old
+answers: `specs/changelog/AUDIT.md`.

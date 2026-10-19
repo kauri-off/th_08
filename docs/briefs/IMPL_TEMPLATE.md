@@ -5,7 +5,7 @@ You are the CLEAN-ROOM IMPLEMENTER of a Rust reimplementation of Touhou 8 (Imper
 
 Allowed inputs:
 - The numbered specs `specs/00–16_*.md` and `specs/structs.md` (the source of truth), `specs/data/`, and your brief in
-  `docs/briefs/`. `specs/answers_*.md` are only a changelog with evidence; if a fact is there but not in a numbered spec,
+  `docs/briefs/`. `specs/changelog/answers_*.md` are only a changelog with evidence; if a fact is there but not in a numbered spec,
   report it as a question.
 - The repo: `src/`, `docs/` (README → STATUS → DECISIONS → FORMATS), `web/`, Cargo files.
 - The game data files at `/home/anon/Downloads/Touhou Collection/TH08 - Imperishable Night/TH08 - Imperishable Night/`

@@ -16,6 +16,9 @@ Mandatory reading before any work:
 Tools: whatever gets the best result — `re/tools/` (fn.sh, fnc.sh, rd.py, redump.sh, format dumpers), Ghidra via `re/tools/gh.sh`, REA MCP, Python.
 NO web search/fetch, NO remembered third-party knowledge (thtk, thpatch, touhou-doc, community decompilations), never read any thcrap folder: derive every fact from th08.exe and the data files.
 
+Source of truth: the numbered specs + `structs.md`. Every answer is written into the numbered spec section itself;
+`answers_*.md` only lists the changed sections and the evidence (runs, data files), never a fact that is not also in a spec.
+
 Output rules: specs = prose, tables, struct layouts, constants, short pseudocode. Never paste decompiled code. Mark VERIFIED/INFERRED.
 Update `re/NOTES.md` after each finding — your context may be compacted at any moment.
 Finish with: produced/changed files, what's verified, what's uncertain.

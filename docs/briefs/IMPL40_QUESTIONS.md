@@ -16,3 +16,9 @@
    the request's calc) or N (the frame whose draw follows the request)?
 5. **Capture option bit 0x17CE8FC bit 1.** `Window_InitD3D` sets it on "screen-capture support": under which
    condition is it clear? The port treats it as always set.
+6. **Continue menu first frame (11 §4.2, 12 §4).** In gameover_save (trace in sync until row 4214) the reference
+   first draws the continue menu at present 3258 with the capture VM already at script time 2 (alpha 0x11); the port
+   opens the menu one calc later (first draw at 3259, all menu VMs one frame late, not only the capture). Which state
+   does the first `ContinueMenu_Update` frame leave (state 0 for one frame, then 1/2?), and how long does state 0 last
+   given the draw rule "state ≠ 0 or the state frame > 2"? Is `game_over` seen by the prio-1 ASCII calc in the same
+   frame it is set (e.g. by timeline op 16 / 0x164D0BB)?

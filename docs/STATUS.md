@@ -296,6 +296,13 @@
   value validation through the table parser (ranges, choices, aliases), `--help` grouped by `Group` with env name
   and default; unknown flags / missing or invalid values exit 2 with clap's error; env/port.cfg keep log-and-ignore.
   Tool `launchershot OUT.png [WxH] [switches]` renders the screen offscreen (`launcher::render_image`).
+- impl45 (RE-Q28 CODE BUGs 9–11, cloud, 2026-10-20): `EnemyManager::step` returns right after the play-time counter
+  while GameFlags bit 10 (no timelines, slot loop, draw-list rebuild, manager clock, card timer; 07 §10.1 step 0);
+  the 0x164D30C play-time counter moved from `GameMgr_Calc` to the top of the enemy step, outside dialogue (11 §2).
+  `GameMgr_OnRemove` already zeroed 0x164D2C8 as its last statement (11 §2), comment only. Exit save: the Supervisor
+  only returns quit on requested −1; `Ctx::exit_save` flushes score.dat after the quitting frame's draw and Present
+  (app) and after its trace sample (session) (15 §2.2). Traces not run (cloud). SPEC-GAP 134 → 133. Questions:
+  `docs/briefs/IMPL45_QUESTIONS.md`.
 - impl44 (RE-Q28 CODE BUGs 6–8, cloud, 2026-10-20): `ItemMgr_DropAttracted` (state-1 items → state 0, vel (0, −0.9, 0))
   as the last step of `Player_Die` (both modes) and after the real-death drops (09 §6.1–6.2); single-kill gauge
   through `GaugeAdd(−gauge/12)`, skipped while bombing, clamped (07 §10.3a); graze: the third time orb only inside
@@ -335,6 +342,14 @@
   Supervisor decrement); type 7 is removed while the gameplay frame counter < 2. Ring init 0x4272E0: 24 segments,
   crossed param copy (13 §2.6). List C draws as `DrawBillboard` through `Camera_Set2D` on the playfield (13 §2.4).
   Unit test for the ring init. Traces not run (cloud). SPEC-GAP 148 → 145. Questions: `docs/briefs/IMPL62_QUESTIONS.md`.
+- impl66 (audit A.62, A.63, A.64, A.67, cloud, 2026-10-20): `msg::face_files` follows the 10 §3 tables (stage faces
+  per index; in spell practice no player faces and slot 18 = the `…sp` cut-in chosen by card id, Ex: none outside its
+  card ranges). `Ending_Init` step 1 resets the AnmManager texture caches and runs `Ctx::clear_present_twice` (two
+  white clear+Presents, 16 §1.2); Ending_Ctor start values text colour 0, +0x2A94 = 0, and LoadScript sets only
+  +0x2A90 := 8. `ScoreDat::rebuild_lists` re-inserts the stored HSCR entries with ScoreList_Insert at every
+  Result_OnRegister (modes 0/1 in `on_register`, mode 2 in `save_score(flush)`), so equal scores flip per load/save
+  (15 §2.3); `ranking` keeps the in-memory order and puts entries above equal default rows. Unit tests for all four.
+  Traces not run (cloud). SPEC-GAP 134 → 129. Questions: `docs/briefs/IMPL66_QUESTIONS.md`.
 - impl48 (audit A.50, A.51, A.52, cloud, 2026-10-20): BGM volume uses the square curve `config::bgm_volume_curve`
   (02 §4 `0x472840`; the cube stays for SE); `Audio::fade_bgm` queues command 5 with trunc(secs), started in
   Sound_Update (`start_fade`) and ticked at the top of the Supervisor calc (`tick_fade`): p = n·5000/N − 5000, linear
@@ -359,11 +374,21 @@
   the thread is freed). Native 31 drops item type 3 while the player is bombing, else 5 (07 §12); op 181 does nothing
   at all at clock 12, sfx 0x2D only below (07 §7). Unit tests for all three. Traces not run (cloud). SPEC-GAP
   134 → 130. Questions: `docs/briefs/IMPL50_QUESTIONS.md`.
+- impl54 (audit A.22, A.23, A.26, cloud, 2026-10-20): damage areas test enemies per 09 §4.5 (`Area::hits_enemy`:
+  circle = point test on the enemy centre `≤ r²`, rectangles = inclusive box overlap, unrotated box in the area frame);
+  the bomb active flag +0xE2A7C is no longer cleared at the bomb end but by the next failed normal start test (09 §1.1);
+  game over leaves lives and bombs unchanged (09 §6.2). Unit tests for all three. Traces not run (cloud).
+  SPEC-GAP 134 → 132. Question: IMPL54_QUESTIONS.md.
 - impl59 (audit A.34, A.35, A.36, cloud, 2026-10-20): `Stage::step` returns at once while GameFlags bit 10 (player
   `freeze_bullets`): no script, camera, clock, sparkle flag or frame counter (06 §5); sparkles spawn from frame 0 in
   spell practice (GameFlags bit 14, `Stage::sparkle_due`, 06 §5); a billboard appends a sparkle point only when it is
   drawn (0 ≤ z ≤ 1), `v < fog_near` quirk in `sparkle_point_ok` (06 §11.1). Unit tests for all three. Traces not run
   (cloud). SPEC-GAP 148 → 145. No questions.
+- impl57 (audit A.29, A.30, A.31, cloud, 2026-10-20): Yukari's option always runs the animation test after the attack
+  test, on the sub-state the frame entered with, so it can overwrite sub 3 / interrupt 3 while the aimed pointer stays
+  (14 §3.1); a shot origin reads the option pos whatever the option's state (09 §4.3); laser init 4 and update 5 both
+  honour GameFlags bit 13 (refuse / end the laser, 14 §4). Unit tests for all three. Traces not run (cloud).
+  SPEC-GAP 134 → 130. No questions.
 - impl39 (RE-Q25 CODE BUGs 4–6, 2026-10-20): screen effects registered from calc nodes below prio 3 are linked at once
   (`effect::screen_now` for the `GameMgr_Calc` demo-end fade, `loading_overlay` from the Supervisor on-register), so
   their first calc runs in the same frame (13 §3). Stage-clear panel per the rewritten 12 §5.6: op 9 stores the values

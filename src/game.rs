@@ -142,6 +142,19 @@ impl Ctx {
         }
     }
 
+    // Device_ClearPresentTwice 0x45B020 (16 §1.2 step 1): clear colour (`color`) and z 1.0, Present, twice; called from
+    // inside a calc node, so these presents carry no primitives and shift the present numbering by 2.
+    pub fn clear_present_twice(&mut self, color: [u8; 4]) {
+        for _ in 0..2 {
+            self.gfx.set_viewport(crate::gfx::FULLSCREEN);
+            self.gfx.clear_depth(Some(color));
+            if self.drawlog.is_some() {
+                self.log_frame();
+            }
+            self.gfx.present();
+        }
+    }
+
     // Debug tool. TH08_DRAWLOG: one F record per presented frame, sampled after the draw.
     fn log_frame(&mut self) {
         let recs = self.gfx.take_log();

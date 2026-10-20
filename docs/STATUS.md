@@ -330,6 +330,19 @@
   Supervisor decrement); type 7 is removed while the gameplay frame counter < 2. Ring init 0x4272E0: 24 segments,
   crossed param copy (13 §2.6). List C draws as `DrawBillboard` through `Camera_Set2D` on the playfield (13 §2.4).
   Unit test for the ring init. Traces not run (cloud). SPEC-GAP 148 → 145. Questions: `docs/briefs/IMPL62_QUESTIONS.md`.
+- impl48 (audit A.50, A.51, A.52, cloud, 2026-10-20): BGM volume uses the square curve `config::bgm_volume_curve`
+  (02 §4 `0x472840`; the cube stays for SE); `Audio::fade_bgm` queues command 5 with trunc(secs), started in
+  Sound_Update (`start_fade`) and ticked at the top of the Supervisor calc (`tick_fade`): p = n·5000/N − 5000, linear
+  in dB to −50 dB over trunc(secs)·60 frames, then stop (02 §4); main-menu Quit no longer fades WAV music (12 §2.2).
+  Unit tests for both curves and the fade. Traces not run (cloud). SPEC-GAP 148 → 148 (2 removed, 2 added).
+  Questions: `docs/briefs/IMPL48_QUESTIONS.md`.
+- impl49 (audit A.20, A.55, A.65, cloud, 2026-10-20): laser cancels set width := current width so the fade shrinks
+  from the current size (`cancel_lasers`, 08 §7); key repeat tests the unchanged-input counter before incrementing it,
+  first repeat on the 33rd equal frame (`Input::tick`, 11 §7); `Archive::from_bytes` rejects count ≤ 0 or table offset
+  ≥ file size (01 §4) and `Archive::read` returns data without `edz` + known type char as-is (01 §6 step 4); the block
+  cipher deciphers nothing when the tail exceeds a short odd input (01 §2, signed n) instead of panicking. Unit tests
+  for repeat frames and synthetic archives. Traces not run (cloud). SPEC-GAP 148 → 144. Questions:
+  `docs/briefs/IMPL49_QUESTIONS.md`.
 - impl47 (audit A.45, A.60, A.61, cloud, 2026-10-20): `ScoreDat::insert_hscr` puts a new entry before equal scores
   (15 §2.3); name-entry Up, Down, Left, Right are four independent tests per frame in that order (`move_char_cursor`,
   16 §2.2); the HSCR / replay date is local time (`chrono::Local` native, JS `Date` on wasm; 16 §2.2). Unit tests for

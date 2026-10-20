@@ -373,6 +373,16 @@
   previous scene was 5 (`menu::title_music`, 00 §3.2); resulttext.anm in ANM slot 22 (00 §3.2). Unit tests for the
   volume steps and the music rule. Traces not run (cloud). SPEC-GAP 134 → 131 (src). Questions:
   `docs/briefs/IMPL64_QUESTIONS.md`.
+- impl65 (audit A.56, A.57, A.58, cloud, 2026-10-20): spell-practice confirm sets difficulty = `Spell_DifficultyOf(id)`,
+  Last Words Normal + id stage (`menulist::spell_start`, 16 §6.2); a screen-16 shot change zeroes +0x1442C (pie easing
+  restarts, input stays on) and Bomb stores the row into g_StageIdx; screen 16 entry sets the row from g_StageIdx
+  (16 §6.1). Handlers that return 2 (9 → 11, 15 → 16, 11 → 9, 16 ↔ 17) set `MainMenu::again` and `calc` runs the
+  handler, RunRange and the description VM again in the same frame (12 §2); the mopup1-derived press-frame special
+  cases are gone. Back from a practice game the menu starts on 8 / 15 with +0x6C (`MainMenu::back`) and forwards
+  8 → 9 → 11 / 15 → 16 → 17 (12 §2.2); screen 15 is handled by `character`. Replay stage row: cursor on the first
+  recorded stage at the file confirm, +0xC290 written only in sub-state 2 (15 §3.8). Unit tests for the confirm
+  difficulty/stage and the replay stage cursor. Traces not run (cloud). SPEC-GAP 115 → 106 (src). Questions:
+  `docs/briefs/IMPL65_QUESTIONS.md`.
 - impl50 (audit A.12, A.15, A.16, cloud, 2026-10-20): `EnemyManager::kill_all` (op 95, op 123 `Spell_End`, death
   modes 0–2) and `kill_non_bosses` (threshold / timeout switch) have no self test (07 §7 op 95, §10.2): the ECL
   caller is put back in its slot with its running main context (`Exec::with_self_in_slot`), so a non-boss caller

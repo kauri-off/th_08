@@ -12,6 +12,8 @@ Read `docs/briefs/IMPL_TEMPLATE.md` and `CLAUDE.md` first. Facts from the number
 3. **Burst effect 21/26 angle** (13 §2, effect.rs): random (FloatRange(2π) − π) only when param.x ≤ −990.0, else
    `Angle_AddNormalize(param.x)`. Expected golden ~10707, fullrun ~9408.
 
+Audit (`docs/AUDIT_SPEC_CONFORMANCE.md`): deliverables are A.0 rows 3–5.
+
 ## Verification
 
 - Report golden / fullrun_noclip / selftest1 leading rows, demo MIN_SYNC, draw logs, SPEC-GAP, before → after; raise

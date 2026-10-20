@@ -352,6 +352,12 @@
   (15 §2.3); name-entry Up, Down, Left, Right are four independent tests per frame in that order (`move_char_cursor`,
   16 §2.2); the HSCR / replay date is local time (`chrono::Local` native, JS `Date` on wasm; 16 §2.2). Unit tests for
   ties and Up+Down. Traces not run (cloud). SPEC-GAP 168 → 167. Questions: `docs/briefs/IMPL47_QUESTIONS.md`.
+- impl64 (audit A.53, A.54, A.59, cloud, 2026-10-20): option volumes (items 3/4) step ∓/±4 on a Left/Right edge
+  then ∓/±1 on an edge or while held with the unchanged-input counter > 29 (`menu::volume_step`, 15 §1.3); SE 0x1D
+  volume preview every 50 screen frames on items 3/4, no SE on a volume step; title music is skipped when the
+  previous scene was 5 (`menu::title_music`, 00 §3.2); resulttext.anm in ANM slot 22 (00 §3.2). Unit tests for the
+  volume steps and the music rule. Traces not run (cloud). SPEC-GAP 134 → 131 (src). Questions:
+  `docs/briefs/IMPL64_QUESTIONS.md`.
 - impl59 (audit A.34, A.35, A.36, cloud, 2026-10-20): `Stage::step` returns at once while GameFlags bit 10 (player
   `freeze_bullets`): no script, camera, clock, sparkle flag or frame counter (06 §5); sparkles spawn from frame 0 in
   spell practice (GameFlags bit 14, `Stage::sparkle_due`, 06 §5); a billboard appends a sparkle point only when it is

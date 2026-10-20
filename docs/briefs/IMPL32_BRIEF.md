@@ -1,0 +1,58 @@
+# IMPL32 — visual launcher screen (port infrastructure)
+
+Read `docs/briefs/IMPL_TEMPLATE.md` and `CLAUDE.md` first. This task is port infrastructure with no spec section. Game
+behaviour must not change at all.
+
+impl31 made `src/settings.rs` a data-driven table (`ENTRIES`: key, env, `Kind`, default, `Group`, help) behind
+`Settings` (`find`, `set`, `value`, `origin`, `save_port_cfg`, `init`/`get` via `OnceLock`). `src/launcher.rs` only
+resolves the game folder with an rfd dialog. The user wants a real launcher: a screen where **every** setting can be
+changed with the mouse, native and web, with one UI implementation. The UI stack is fixed: **egui on the port's
+existing wgpu device and winit window** (egui + egui-wgpu + egui-winit, versions that match wgpu 30 / winit 0.30; if
+none match exactly, say so in your report and pick the closest working combination, no wgpu/winit downgrade).
+
+## Deliverables
+
+1. **Launcher screen (egui) in the game window, before the game starts.**
+   - Built by enumerating `ENTRIES` grouped by `Group` (collapsible sections, Game data and Display open first). Never
+     hand-list settings: a new table entry must appear automatically. Widget per `Kind`: Bool → checkbox, Int →
+     drag value / slider clamped to the range, Enum → combo box, Text → text field with the format hint, Path → text
+     field + "Browse…" (native: rfd file or folder dialog as fits the entry).
+   - Each row shows the help line (tooltip or small text) and marks values that come from CLI/env (`origin`), e.g.
+     "set by TH08_STAGE"; such values are still editable for this run.
+   - Game folder row at the top: current folder, "Browse…" (native rfd), validation status (contains `th08.dat`,
+     case-insensitive). Play is disabled while the folder is invalid.
+   - Buttons: **Play** (apply, save, start), **Reset to defaults**, **Quit** (native). Play saves every changed setting
+     to `port.cfg` (only keys that differ from the default, existing lines and comments kept; values coming only from
+     CLI/env are not written unless the user changed them in the UI).
+   - Keyboard/gamepad-free use is fine; mouse + keyboard text entry must work. Readable at 640×480 ×scale.
+2. **Start-up flow.**
+   - The `th08` binary shows the launcher by default. New setting `launcher` (bool, default on, group Display or
+     GameData, env `TH08_LAUNCHER`) — `--no-launcher` / `TH08_LAUNCHER=0` starts the game directly with the
+     resolved settings (the impl31 flow, folder dialog only when no folder is known).
+   - Tool binaries, tests, sessions, demosync, headless runs (`TH08_SHOT`, drawlog/session tools) never show it.
+   - After Play the settings become the final `Settings` handed to `settings::init` before any game code reads
+     `settings::get()`; the game then starts in the same window exactly as today (same first frame, same timing).
+     Egui must not be drawn, ticked or allocate GPU state that changes game rendering after Play (the draw log must
+     be identical).
+3. **Web.**
+   - Same launcher screen in the canvas. Folder selection stays with the existing JS picker/OPFS in `web/index.html`
+     (show the picked folder state in the launcher; a "Choose folder…" button may call into JS if that is simple,
+     otherwise keep the JS step before the launcher). URL params pre-fill and mark values as in native.
+   - Persist launcher choices in `localStorage` (key per setting), read with the same precedence slot as `port.cfg`.
+   - Update `README.md` (launcher, `--no-launcher`) and `docs/STATUS.md`.
+
+## Verification
+
+- All metrics identical: golden 8104, fullrun_noclip 7552, selftest1 1422, demo MIN_SYNC 4450/3869/3081/1605, all
+  draw-log metric lines unchanged, 85+ tests pass, `cargo build --release` 0 warnings, `cargo fmt --check`,
+  `cargo check --release --lib --target wasm32-unknown-unknown`, and a full wasm build of the web page if the repo has
+  a script for it.
+- Render the launcher screen to PNG without a desktop screenshot (offscreen like the `shot` switch, or a test that
+  renders egui to a texture) and save it under `target/impl-work/impl32/` for review: one default view, one with a
+  CLI-set value marked. Never take full-desktop screenshots.
+- Native smoke with `XDG_CONFIG_HOME=target/impl-work/impl32/cfg`: launcher → Play starts stage play; `port.cfg`
+  contains only changed keys; `--no-launcher` skips it. Never touch the real `~/.config/th08` or the game folder.
+- Web smoke: if you can serve the page locally, check in a headless browser (Playwright) that the launcher appears and
+  Play starts the game; report what you could not check.
+- Work files under `target/impl-work/impl32/`. Do not run git (not even `git status`/`git diff`); do not touch
+  `th08.exe` or `re/`.

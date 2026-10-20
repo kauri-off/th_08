@@ -435,15 +435,15 @@ mod tests {
         let mut f = Fade::new(4);
         let p: Vec<i32> = std::iter::from_fn(|| f.tick()).collect();
         assert_eq!(p.len(), 239);
-        assert_eq!([p[0], p[118], p[238]], [-21, -2500, -4980]);
+        assert_eq!([p[0], p[119], p[238]], [-21, -2500, -4980]);
         let bgm = |p, v| crate::config::bgm_volume_curve(p, v);
         assert_eq!(
-            [bgm(p[0], 100), bgm(p[118], 100), bgm(p[238], 100)],
+            [bgm(p[0], 100), bgm(p[119], 100), bgm(p[238], 100)],
             [-21, -2500, -4980]
         );
         // v = 50 (k = 0.75): trunc((p + 5000)·0.75) − 5000.
         assert_eq!(
-            [bgm(p[0], 50), bgm(p[118], 50), bgm(p[238], 50)],
+            [bgm(p[0], 50), bgm(p[119], 50), bgm(p[238], 50)],
             [-1266, -3125, -4985]
         );
         assert_eq!(Fade::new(0).tick(), None);

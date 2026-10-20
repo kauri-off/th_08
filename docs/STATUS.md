@@ -324,6 +324,12 @@
   Draw2DRot after the title VMs and the stage-start clock (12 §5.7). Sync: golden 8297, fullrun_noclip 7745,
   selftest1 1921, demo MIN_SYNC 4628/3879/4035/6664 unchanged; draw logs: selftest1 95.49 → 95.74 %, golden 26.94 %,
   demo / menu draw logs unchanged. SPEC-GAP 169 → 168. Questions: `docs/briefs/IMPL40_QUESTIONS.md`.
+- impl62 (audit A.41, A.42, A.43, cloud, 2026-10-20): screen effects 1/2/4/7 follow 13 §3: shakes 1/7 hold on GameFlags
+  bit 10 or the freeze byte, otherwise tick first and end before the RNG draws; type 1 and fades 2/4 are removed while
+  0x18B8A2C ≠ 0 (now a global `enemy::load_frames`: native 30, StageStart 2, GM on-remove 1, Result/MainMenu 0,
+  Supervisor decrement); type 7 is removed while the gameplay frame counter < 2. Ring init 0x4272E0: 24 segments,
+  crossed param copy (13 §2.6). List C draws as `DrawBillboard` through `Camera_Set2D` on the playfield (13 §2.4).
+  Unit test for the ring init. Traces not run (cloud). SPEC-GAP 148 → 145. Questions: `docs/briefs/IMPL62_QUESTIONS.md`.
 - impl47 (audit A.45, A.60, A.61, cloud, 2026-10-20): `ScoreDat::insert_hscr` puts a new entry before equal scores
   (15 §2.3); name-entry Up, Down, Left, Right are four independent tests per frame in that order (`move_char_cursor`,
   16 §2.2); the HSCR / replay date is local time (`chrono::Local` native, JS `Date` on wasm; 16 §2.2). Unit tests for

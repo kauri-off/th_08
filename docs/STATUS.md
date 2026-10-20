@@ -296,6 +296,13 @@
   value validation through the table parser (ranges, choices, aliases), `--help` grouped by `Group` with env name
   and default; unknown flags / missing or invalid values exit 2 with clap's error; env/port.cfg keep log-and-ignore.
   Tool `launchershot OUT.png [WxH] [switches]` renders the screen offscreen (`launcher::render_image`).
+- impl45 (RE-Q28 CODE BUGs 9–11, cloud, 2026-10-20): `EnemyManager::step` returns right after the play-time counter
+  while GameFlags bit 10 (no timelines, slot loop, draw-list rebuild, manager clock, card timer; 07 §10.1 step 0);
+  the 0x164D30C play-time counter moved from `GameMgr_Calc` to the top of the enemy step, outside dialogue (11 §2).
+  `GameMgr_OnRemove` already zeroed 0x164D2C8 as its last statement (11 §2), comment only. Exit save: the Supervisor
+  only returns quit on requested −1; `Ctx::exit_save` flushes score.dat after the quitting frame's draw and Present
+  (app) and after its trace sample (session) (15 §2.2). Traces not run (cloud). SPEC-GAP 134 → 133. Questions:
+  `docs/briefs/IMPL45_QUESTIONS.md`.
 - impl44 (RE-Q28 CODE BUGs 6–8, cloud, 2026-10-20): `ItemMgr_DropAttracted` (state-1 items → state 0, vel (0, −0.9, 0))
   as the last step of `Player_Die` (both modes) and after the real-death drops (09 §6.1–6.2); single-kill gauge
   through `GaugeAdd(−gauge/12)`, skipped while bombing, clamped (07 §10.3a); graze: the third time orb only inside
@@ -360,6 +367,11 @@
   (15 §2.3); name-entry Up, Down, Left, Right are four independent tests per frame in that order (`move_char_cursor`,
   16 §2.2); the HSCR / replay date is local time (`chrono::Local` native, JS `Date` on wasm; 16 §2.2). Unit tests for
   ties and Up+Down. Traces not run (cloud). SPEC-GAP 168 → 167. Questions: `docs/briefs/IMPL47_QUESTIONS.md`.
+- impl54 (audit A.22, A.23, A.26, cloud, 2026-10-20): damage areas test enemies per 09 §4.5 (`Area::hits_enemy`:
+  circle = point test on the enemy centre `≤ r²`, rectangles = inclusive box overlap, unrotated box in the area frame);
+  the bomb active flag +0xE2A7C is no longer cleared at the bomb end but by the next failed normal start test (09 §1.1);
+  game over leaves lives and bombs unchanged (09 §6.2). Unit tests for all three. Traces not run (cloud).
+  SPEC-GAP 134 → 132. Question: IMPL54_QUESTIONS.md.
 - impl59 (audit A.34, A.35, A.36, cloud, 2026-10-20): `Stage::step` returns at once while GameFlags bit 10 (player
   `freeze_bullets`): no script, camera, clock, sparkle flag or frame counter (06 §5); sparkles spawn from frame 0 in
   spell practice (GameFlags bit 14, `Stage::sparkle_due`, 06 §5); a billboard appends a sparkle point only when it is

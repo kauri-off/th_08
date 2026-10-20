@@ -16,6 +16,8 @@ Read `docs/briefs/IMPL_TEMPLATE.md` and `CLAUDE.md` first. Facts from the number
    see the running enemy's links. Expected golden → ~10516 (with RE-Q28 fix 3 also needed for the full value; report
    what you get), fullrun → ~9346.
 
+Audit (`docs/AUDIT_SPEC_CONFORMANCE.md`): deliverables 2–3 are A.0 rows 1–2.
+
 ## Verification
 
 - Run every metric with a `port.cfg` containing `invuln = on` in `XDG_CONFIG_HOME=target/impl-work/impl42/cfg` and

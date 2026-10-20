@@ -25,6 +25,7 @@ Engineering rules:
 - Verify visually/behaviourally: `TH08_SHOT=<frame>` writes `/tmp/th08_shot.png`; add debug env vars/bins if useful.
   Run with `RUST_LOG=warn,wgpu_hal=off`. Look at the screenshots you produce.
 - Do NOT run git (the coordinator commits). Do NOT spawn sub-agents.
+- Mark each fixed item of `docs/AUDIT_SPEC_CONFORMANCE.md`: append `✅ implNN` to its row.
 - Update `docs/STATUS.md` (Done / Next) and `docs/FORMATS.md` if you add format knowledge.
 
 - Session traces (golden, fullrun_noclip, demos) are for locating divergences only. Never fit constants, order or

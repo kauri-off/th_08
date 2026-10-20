@@ -324,6 +324,12 @@
   Draw2DRot after the title VMs and the stage-start clock (12 §5.7). Sync: golden 8297, fullrun_noclip 7745,
   selftest1 1921, demo MIN_SYNC 4628/3879/4035/6664 unchanged; draw logs: selftest1 95.49 → 95.74 %, golden 26.94 %,
   demo / menu draw logs unchanged. SPEC-GAP 169 → 168. Questions: `docs/briefs/IMPL40_QUESTIONS.md`.
+- impl48 (audit A.50, A.51, A.52, cloud, 2026-10-20): BGM volume uses the square curve `config::bgm_volume_curve`
+  (02 §4 `0x472840`; the cube stays for SE); `Audio::fade_bgm` queues command 5 with trunc(secs), started in
+  Sound_Update (`start_fade`) and ticked at the top of the Supervisor calc (`tick_fade`): p = n·5000/N − 5000, linear
+  in dB to −50 dB over trunc(secs)·60 frames, then stop (02 §4); main-menu Quit no longer fades WAV music (12 §2.2).
+  Unit tests for both curves and the fade. Traces not run (cloud). SPEC-GAP 148 → 148 (2 removed, 2 added).
+  Questions: `docs/briefs/IMPL48_QUESTIONS.md`.
 - impl47 (audit A.45, A.60, A.61, cloud, 2026-10-20): `ScoreDat::insert_hscr` puts a new entry before equal scores
   (15 §2.3); name-entry Up, Down, Left, Right are four independent tests per frame in that order (`move_char_cursor`,
   16 §2.2); the HSCR / replay date is local time (`chrono::Local` native, JS `Date` on wasm; 16 §2.2). Unit tests for

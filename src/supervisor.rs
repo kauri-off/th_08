@@ -599,6 +599,25 @@ pub fn date_md() -> String {
     }
 }
 
+// Local "%Y/%m/%d %H:%M:%S" for the replay USER line プレイ時刻 (15 §3.5).
+pub fn datetime_now() -> String {
+    #[cfg(not(target_arch = "wasm32"))]
+    return chrono::Local::now().format("%Y/%m/%d %H:%M:%S").to_string();
+    #[cfg(target_arch = "wasm32")]
+    {
+        let d = js_sys::Date::new_0();
+        format!(
+            "{}/{:02}/{:02} {:02}:{:02}:{:02}",
+            d.get_full_year(),
+            d.get_month() + 1,
+            d.get_date(),
+            d.get_hours(),
+            d.get_minutes(),
+            d.get_seconds()
+        )
+    }
+}
+
 impl Task<Ctx> for Stub {
     fn calc(&mut self, ctx: &mut Ctx, _: u8) -> Ret {
         if self.kind == gamemgr::SCENE_MUSIC_ROOM

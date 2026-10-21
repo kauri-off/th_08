@@ -448,6 +448,10 @@
   (14 §3.1); a shot origin reads the option pos whatever the option's state (09 §4.3); laser init 4 and update 5 both
   honour GameFlags bit 13 (refuse / end the laser, 14 §4). Unit tests for all three. Traces not run (cloud).
   SPEC-GAP 134 → 130. No questions.
+- impl56 (audit A.28, A.33, A.68, cloud, 2026-10-21): `Player_Load` puts the player at (192, 384, 0.49) and the
+  respawn point is (192, 384, 0.2) (09 §6.4); the dead `box_in_cancel_area` is gone and `Area::contains` is the plain
+  point test (09 §8); the +0xE2A6C cooldown drops at the top of `update_bomb`, skipped on a forced-start call
+  (09 §1.1). Unit tests for the start/respawn z and the cooldown. Traces not run (cloud). SPEC-GAP 99 → 96. No questions.
 - impl39 (RE-Q25 CODE BUGs 4–6, 2026-10-20): screen effects registered from calc nodes below prio 3 are linked at once
   (`effect::screen_now` for the `GameMgr_Calc` demo-end fade, `loading_overlay` from the Supervisor on-register), so
   their first calc runs in the same frame (13 §3). Stage-clear panel per the rewritten 12 §5.6: op 9 stores the values
@@ -510,6 +514,12 @@
   `settings::config_dir` uses `directories` 6 `BaseDirs::config_dir()/th08` (same paths as before).
   `audio::parse_wav` uses `hound` 3.5; `se_waves_parse` compares every SE sample with the old RIFF parser.
 
+- impl53 (audit A.19, A.21, cloud, 2026-10-21): ECL native 26 sends interrupt 2 (arg ≠ 0) / 1 to the stage VMs;
+  native 28 also scales live bullet velocities by 1/arg and maps sprites 0x60–0x6F → 0x6F (old sprite kept in the
+  bullet's +0x218 copy `saved_sprite`, also set at spawn), interrupt 2; native 29 restores velocities and sprites,
+  interrupt 1 (07 §12). `Spell_End` sets the bomb cooldown +0xE2A6C := 16 (07 §11.1); the decrement moved to the top of
+  `update_bomb` and is skipped on a forced start (09 §1.1). Unit tests for the cooldown, `Spell_End` and the
+  slow-down. Traces not run (cloud). SPEC-GAP 99 → 101 (src). Questions: `docs/briefs/IMPL53_QUESTIONS.md`.
 ## Run
 WebGPU in Playwright: headless Chromium only has SwiftShader and loses the device on the first canvas present (even a bare JS triangle); use a headed launch with `--enable-unsafe-webgpu --enable-features=Vulkan --ignore-gpu-blocklist --ozone-platform=x11 --force-device-scale-factor=1` (on Wayland at 1.25 scale `devicePixelContentBoxSize` makes the canvas 800x600 even with an emulated DPR of 1).
 Web: `web/build.sh`, serve `web/dist` (e.g. `python3 -m http.server -d web/dist 8087`). Verified in Playwright Chromium (WebGL2 fallback, OPFS cache works).

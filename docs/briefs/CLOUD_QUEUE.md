@@ -7,5 +7,5 @@ Done: waves 1–6 (audit §A.0–A.1 and §B closed; PR #29 = impl73 still open)
 
 | wave | tasks |
 |---|---|
-| 7 | PR #29 fix (audit 69–71, see the PR comment), 74, 76, 77 |
+| 7 | ✅ 73 (#29), 74, 76, 77 |
 | 8 | 75 |

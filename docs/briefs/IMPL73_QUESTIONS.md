@@ -15,3 +15,8 @@
 4. 11 §7 OR-accumulation: on a skipped frame, is only the polled word 0x164D528 OR-ed with the raw keys (previous
    0x164D530, counter 0x164D53C and repeat flag 0x164D538 left as they are, as the port does), or is the repeat flag
    cleared?
+
+**Answered by RE-Q29** (specs on master 25fc6f5: 11 §1.4, §4 steps 5/10, §7; 15 §3.1) and implemented in PR #29:
+Q1 the debug calc reads only the input word (stride 6, no RNG forcing); Q2 the hook has no gate and nothing reads
++0xD8; Q3 the counter GM+0x3DE08 is shared with step 5 and never reset, gm+0x2D is cleared by step 10, StageStart and
+the GM on-remove, the skip returns after step 9; Q4 the accumulation ORs the raw word and leaves everything else.

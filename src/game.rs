@@ -15,6 +15,8 @@ pub struct Ctx {
     pub archive: Archive,
     pub audio: Audio,
     pub input: Input,
+    // Joystick device polled by the Supervisor (15 §1.1).
+    pub pad: crate::joystick::Joystick,
     pub anm: AnmManager,
     pub tasks: Tasks<Ctx>,
     // Port count of executed calc steps (debug tools, TH08_SHOT); not an original counter.
@@ -27,6 +29,8 @@ pub struct Ctx {
     pub drawlog: Option<crate::drawlog::Writer>,
     // Frame_Run frame-skip counter (i8, 00 §2), compared with cfg +0x23.
     pub skip_counter: i8,
+    // Unlock notices (16 §4), shown in place of the frame's chains.
+    pub info: crate::menu::InfoNotices,
 }
 
 impl TaskCtx for Ctx {
@@ -66,6 +70,11 @@ impl Ctx {
             archive,
             audio,
             input: Input::default(),
+            pad: if persist {
+                crate::joystick::Joystick::new()
+            } else {
+                Default::default()
+            },
             anm: AnmManager::default(),
             tasks: Tasks::default(),
             frame: 0,
@@ -75,6 +84,7 @@ impl Ctx {
             settings,
             drawlog: None,
             skip_counter: 0,
+            info: Default::default(),
         };
         ctx.game.cfg = cfg;
         if persist {
@@ -119,6 +129,12 @@ impl Ctx {
     // Frame_Run first half (00 §2): AnmManager begin-frame, calc chain, Sound_Update.
     pub fn calc(&mut self) -> Flow {
         self.anm.begin_frame();
+        if self.info.active() && crate::menu::InfoNotices::calc(self) {
+            // Info_Show's own loop: input, Sound_Update, no chains.
+            self.sound_update();
+            self.frame += 1;
+            return Flow::Continue;
+        }
         let f = task::run(self, Chain::Calc);
         self.sound_update();
         // Port: ScreenEffect_Register (13 §3) links its nodes at once; effects queued by calc nodes after prio 3 are linked
@@ -154,6 +170,13 @@ impl Ctx {
     // Frame_Run second half (00 §2); Frame_Run only checks the calc runner's result. The draw chain runs when the
     // counter reaches cfg +0x23 (so 0 and 1 both draw every frame); Present follows either way.
     pub fn draw(&mut self) {
+        if self.info.showing() {
+            crate::menu::InfoNotices::draw(self);
+            if self.drawlog.is_some() {
+                self.log_frame();
+            }
+            return;
+        }
         self.skip_counter = self.skip_counter.wrapping_add(1);
         if self.skip_counter >= self.game.cfg.frame_skip as i8 {
             task::run(self, Chain::Draw);

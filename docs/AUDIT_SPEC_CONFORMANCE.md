@@ -121,18 +121,37 @@
 | 67 | `scoredat.rs` `ranking` (impl47 Q1) | 15 §2.3: score.dat перечитывается в каждом `Result_OnRegister` (режимы 0, 1, 2), записи вставляются `ScoreList_Insert`, так что равные очки меняют порядок при каждой загрузке | файл читается один раз, порядок равных сохраняется | U | ✅ impl66 |
 | 68 | `player.rs` декремент +0xE2A6C (impl46 Q2) | 09 §1.1: декремент пропускается при forced-старте (+6 set и +0xE2A68 == 1) | декремент всегда | S | ✅ impl56
 
+
+### A.2 Найдены RE-Q29 (2026-10-21)
+
+| # | где | спецификация | код | сер. |
+|---|---|---|---|---|
+| 69 | `demosync.rs` / `session.rs` колонка `rng_ctr` (PR #29) | 11 §1.4: колонка трассы — счётчик всех `Next16` с запуска процесса, никогда не сбрасывается; `Rng::counter` обнуляет хук | PR #29 пишет в колонку `Rng::counter` | S |
+| 70 | `replay.rs` отладочное проигрывание (PR #29) | 15 §3.1: `Replay_PlayCalcDebug` читает только слово ввода, курсор +0x78, шаг 6; RNG не форсируется | PR #29 форсирует RNG третьим словом | S |
+| 71 | `gamemgr.rs` шаг 10 (slow mode) | 11 §4 шаги 5 и 10: общий счётчик GM+0x3DE08, точки сброса gm+0x2D | не реализован | U |
+| 72 | `hud.rs` `Hud_Calc` | 12 §5.1b: сначала `Hud_Update` (бонус, триггер, часы, VM, fade, попапы), потом `Msg_Run` | диалог раньше | S |
+| 73 | `hud.rs` триггер очистки стадии | 12 §5.6: триггер проверяется до шага часов, без 60-кадрового ожидания | после часов, с ожиданием | S |
+| 74 | `hud.rs` панель Clear для stage idx > 6 | 12 §5.6: вся панель сдвигается вверх на 16 | сдвигается только заголовок | V |
+| 75 | `gamemgr.rs` ранг | 11 §3.1: подсчётчик ранга 0x164D340 := 0 на каждом старте стадии | только на новой игре | S |
+| 76 | `player.rs` `gflags` | 11 §2.1: биты GameFlags 7/8/13 живут в слове флагов | хранятся в `Player::gflags` | S |
+| 77 | `msg.rs` op 11 | 10 §5: триггер ставится только для stage idx 6–8, на стадиях 1–5 только стоп | ставится всегда | S |
+| 78 | `anmvm.rs` `Timer_Sub` | 05 §2: медленный путь (speed ≤ 0.99) делает previous := current | не делает | U |
+| 79 | `enemy.rs` шаг 6 | 07 §10.1 шаг 6: два случая пропуска проверки выстрелов при бомбе | не пропускает | S |
+| 80 | `item.rs` подбор | 08 §8.4: сравнение f32-краёв коробок | \|d\| ≤ сумма половин | S |
+| 81 | `bomb.rs` / эффекты тряски | 14 §2.3, §2.4, §2.7, §2.8: длительность в EDX — Sakuya (120, 4, 1), Sakuya LS (50, 4, 1), Alice / Alice LS (24, 8, 0) | (4, 1, 0) / 16 | S |
+| 82 | `ascii.rs` меню продолжения | 12 §4: открывается в том же кадре, первый Update делает состояние 0 → 2 | на кадр позже | S |
+
 ## B. Части спецификации, которые не реализованы (помечены в коде)
 
 Natives 4, 7, 9, 11, 13, 16, 21, 25 ✅ impl72 (`eclvm.rs:1098`); timeline op 9 (0 использований); spell-practice guard для ops
 129/130/133/134; комната музыки ✅ impl70 (16 §5, `musicroom.rs`); диалог сохранения replay (16 §2.6 / 15 §3.6, `result.rs:378`,
-`replay.rs:493`) ✅ impl69; hidden unlock code (15 §2.12, `result.rs:295`); D → score.txt (16 §2.7); key config (15 §1.3);
-MIDI и «music off» (`audio.rs:212`; music off ✅ impl70, MIDI открыт); джойстик и ShotSlow (`input.rs:24`); чтение и запись
-th08.cfg (`game.rs:43`, `config.rs:88`) ✅ impl67; frame skip cfg+0x23 (`game.rs:135`) ✅ impl67; проверка VRSM / exe (15 §2.10);
-`Replay_FrameHook` prio 7 ✅ impl73 (11 §1.4, 15 §3.1, `replay.rs`; debug-calc 6-байтовых кадров тоже, флаг-слово открыто);
-USER-секция replay ✅ impl69; уведомления info00–02.jpg (16 §4, `menu.rs:810`); 3600-кадровый idle-выход
-и return 5 из опций (`menu.rs:623`); slow-mode OR-накопление ввода ✅ impl73 (11 §7, `supervisor.rs`; сеттер gm+0x2D —
-шаг 10 slow mode, 11 §4 — не реализован); sound flush после SE 10 в главном меню и на Left в списке карт ✅ impl73
-(12 §2.2, 16 §6.2, `menu.rs`, `menulist.rs`).
+`replay.rs:493`) ✅ impl69; hidden unlock code (15 §2.12, `result.rs:295`) ✅ impl71; D → score.txt (16 §2.7) ✅ impl71;
+key config (15 §1.3) ✅ impl68; MIDI и «music off» (`audio.rs:212`; music off ✅ impl70, MIDI открыт); джойстик и ShotSlow
+✅ impl68 (`input.rs:24`); чтение и запись th08.cfg (`game.rs:43`, `config.rs:88`) ✅ impl67; frame skip cfg+0x23
+(`game.rs:135`) ✅ impl67; проверка VRSM / exe (15 §2.10); `Replay_FrameHook` prio 7 ✅ impl73 (11 §1.4, 15 §3.1,
+`replay.rs`); USER-секция replay ✅ impl69; уведомления info00–02.jpg (16 §4, `menu.rs:810`) ✅ impl71; 3600-кадровый
+idle-выход и return 5 из опций ✅ impl68 (`menu.rs:623`); slow-mode OR-накопление ввода ✅ impl73 (11 §7, `supervisor.rs`);
+sound flush после SE 10 в главном меню и на Left в списке карт ✅ impl73 (12 §2.2, 16 §6.2, `menu.rs`, `menulist.rs`).
 
 ## C. Устаревшие SPEC-GAP: спецификация теперь отвечает, код уже соответствует
 

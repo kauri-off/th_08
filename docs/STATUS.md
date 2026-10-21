@@ -572,6 +572,12 @@
   3600-frame idle exit, return 5 → `Game::device_reset` (the app applies +0x22 as fullscreen). Unit tests: mapping,
   ShotSlow counter, key swap. Traces not run (cloud). SPEC-GAP 111 → 113 (src). Questions:
   `docs/briefs/IMPL68_QUESTIONS.md`.
+- impl77 (audit 81–82, cloud, 2026-10-21): bomb shakes take the EDX duration (14 header note): Sakuya (1: 120, 4, 1)
+  every window frame, Sakuya LS (1: 50, 4, 1) at T = 0, Alice / Alice LS (1: 24, 8, 0) (§2.3, §2.4, §2.7, §2.8).
+  Continue menu (12 §4): the player (prio 9) / enemy (prio 11, timeline op 16) calc writes `Game::game_over` itself
+  (was relayed by the next `GameMgr_Calc`), so the ASCII calc opens the menu on the next frame; play time is added on
+  menu entry (15 §2.9); the player sprite is hidden while game_over ≠ 0 (14 §5). Unit tests: shake arguments, menu
+  first call. Traces not run (cloud). SPEC-GAP 115 → 115 (src). Questions: `docs/briefs/IMPL77_QUESTIONS.md`.
 ## Run
 WebGPU in Playwright: headless Chromium only has SwiftShader and loses the device on the first canvas present (even a bare JS triangle); use a headed launch with `--enable-unsafe-webgpu --enable-features=Vulkan --ignore-gpu-blocklist --ozone-platform=x11 --force-device-scale-factor=1` (on Wayland at 1.25 scale `devicePixelContentBoxSize` makes the canvas 800x600 even with an emulated DPR of 1).
 Web: `web/build.sh`, serve `web/dist` (e.g. `python3 -m http.server -d web/dist 8087`). Verified in Playwright Chromium (WebGL2 fallback, OPFS cache works).

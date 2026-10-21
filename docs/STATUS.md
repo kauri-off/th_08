@@ -537,12 +537,28 @@
   SPEC-GAP. Unit tests for the parser, title / unlock texts, cursor window and music off. Traces not run (cloud).
   SPEC-GAP 99 → 111 (src). Questions: `docs/briefs/IMPL70_QUESTIONS.md`.
 
+- impl76 (audit 78–80, cloud, 2026-10-21): `Timer::dec` slow path (speed ≤ 0.99) sets prev := cur, the fast path
+  leaves it (05 §2); enemy step 6 skipped for flag A bit 31 while bombing (also the Yukari aimed pick), and the first
+  `Player_DamageAgainst` call not made during a card for a parented enemy while bombing (07 §10.1 step 6); item
+  collection compares f32 box edges against the item box stored by `Player_Move` (08 §8.4, `Player::item_box`).
+  Unit tests for the timer and the collect test. Traces not run (cloud). SPEC-GAP 115 → 116 (src). Questions:
+  `docs/briefs/IMPL76_QUESTIONS.md`.
 - impl72 (audit §B, cloud, 2026-10-21): ECL natives 4 / 7 / 21 warp live bullets that leave the outer zone into the
   inner one (scaled about the shared centre, direction reversed, `BulletManager::warp`); 9 / 11 / 25 hit-test a
   590 × 128 / 192 / 224 box at the caller once its context clock reaches 12; 13 requests stage tint 0xFFC03030;
   16 sets var 10038 = 60 and the caller's var 10019 on chained children near a flag-0x100000 bullet (07 §12). The
   §12 table leaves the details open: SPEC-GAP 99 → 103 (src), questions `docs/briefs/IMPL72_QUESTIONS.md`. Unit tests
   for natives 4, 9, 13, 16. Traces not run (cloud).
+- impl73 (audit §B, A.69–A.71, cloud, 2026-10-21): `Replay_FrameHook` (11 §1.4) at calc prio 7 while recording, and
+  in playback when header +6 ≠ 0 (also called once on linking): +0xD8 := RNG state, `Rng::counter` := 0. The trace
+  column `rng_ctr` now reads the never-reset `Rng::total`. `Replay_PlayCalcDebug` (15 §3.1) = PlayCalc reading only
+  the input word, 3 words per step, no RNG forcing. Slow mode (11 §4 step 10) and playback slowdown (step 5) share
+  the never-reset counter GM+0x3DE08 (`Game::skip_ctr`); step 5 is skipped while dialogue is active. gm+0x2D
+  (`Game::slow_skip`) set by step 10, cleared by step 10, StageStart and the GM on-remove; while set the Supervisor
+  OR-accumulates input (11 §7) and ESC does not pause. Sound flush (`Ctx::sound_update` in place) after SE 10 on a
+  top-menu confirm (12 §2.2) and on Left in the card list (16 §6.2). Unit tests: hook, frame words, accumulation,
+  step 5 / step 10 patterns. SPEC-GAP 115 → 111 (src). Traces not run (cloud). Questions
+  `docs/briefs/IMPL73_QUESTIONS.md` answered by RE-Q29.
 - impl69 (audit §B replay save, cloud, 2026-10-21): Result states 10–14 (16 §2.6): "save replay?" with the
   slow-mode / continue messages (interrupt from VM 4), slot list `replay/th8_01..15.rpy` (headers read at frame 0),
   overwrite prompt, name entry on the §2.2 grid writing +0x58 (pre-filled from LSNM), save → LSNM, draw of VMs 49–54
@@ -578,6 +594,12 @@
   (was relayed by the next `GameMgr_Calc`), so the ASCII calc opens the menu on the next frame; play time is added on
   menu entry (15 §2.9); the player sprite is hidden while game_over ≠ 0 (14 §5). Unit tests: shake arguments, menu
   first call. Traces not run (cloud). SPEC-GAP 115 → 115 (src). Questions: `docs/briefs/IMPL77_QUESTIONS.md`.
+- impl74 (audit 72–74, cloud, 2026-10-21): `Hud::calc` follows 12 §5.1b — `Hud_Update` (boss bar; front, title,
+  stage-start clock, stage-clear and night-clock VMs; night-clock fade; difficulty VM; popup timers; clear bonus;
+  clear trigger + clock animation) first, then `Msg_Run`, then the frame counter, so op 9's bonus lands the next
+  frame. Clear trigger (12 §5.6, `ClearPanel::step`): tested before the animation step, no 60-frame gate, impl+0x22E10
+  delay timer. Clear panel: for stage idx > 6 the pen starts at y 80 for every line. Unit tests for the trigger and
+  animation. Traces not run (cloud). SPEC-GAP 115 → 114 (src). Questions: `docs/briefs/IMPL74_QUESTIONS.md`.
 ## Run
 WebGPU in Playwright: headless Chromium only has SwiftShader and loses the device on the first canvas present (even a bare JS triangle); use a headed launch with `--enable-unsafe-webgpu --enable-features=Vulkan --ignore-gpu-blocklist --ozone-platform=x11 --force-device-scale-factor=1` (on Wayland at 1.25 scale `devicePixelContentBoxSize` makes the canvas 800x600 even with an emulated DPR of 1).
 Web: `web/build.sh`, serve `web/dist` (e.g. `python3 -m http.server -d web/dist 8087`). Verified in Playwright Chromium (WebGL2 fallback, OPFS cache works).

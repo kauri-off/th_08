@@ -17,3 +17,6 @@
 7. **State 12 cursor on entry.** The cursor is not reset when state 12 is entered (from 10 it is 0; back from 14 it is the
    yes/no cursor; back from 13 by ESC it is the name position, the shared +0x1C). Confirm that +0x28 := cursor runs
    every frame from frame 20 (the port does), so the highlighted slot jumps to that row.
+8. **State 12 "at frame 0" (16 §2.6).** Every transition into 12 sets frame := 0, but Result_Calc adds 1 after the state
+   body, so the body never sees frame 0. Does `Result_SaveReplay` read the slot headers in the transition itself (the
+   port does: `enter_slot_list`, from 10, 13 and 14), or does the state test frame ≤ 1 / another counter?

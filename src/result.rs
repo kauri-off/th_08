@@ -6,7 +6,7 @@ use crate::ascii::Text;
 use crate::game::Ctx;
 use crate::gamemgr::{self, F_ENDING_OK};
 use crate::gfx::{FULLSCREEN, TextureId};
-use crate::input::{BOMB, DOWN, ENTER, LEFT, PAUSE, RIGHT, SHOT, UP};
+use crate::input::{BOMB, DOWN, ENTER, Input, LEFT, PAUSE, RIGHT, SHOT, UP};
 use crate::menu::{CANCEL, CONFIRM};
 use crate::scoredat::{C_ATTEMPTS, C_BONUS, C_CAPTURES, C_PRACTICE, CARDS, Hscr};
 use crate::sound;
@@ -402,7 +402,7 @@ impl ResultScreen {
                     self.frame = 9;
                 }
             }
-            S_SAVE => self.save_ask(ctx),
+            S_SAVE => self.save_ask(ctx.input, &ctx.game),
             S_SAVE_MSG => {
                 // State 11: the "cannot save" message, left from frame 20 (16 §2.6).
                 let inp = ctx.input;
@@ -410,7 +410,7 @@ impl ResultScreen {
                     self.leave_save();
                 }
             }
-            S_SAVE_SLOT => self.save_slot(ctx),
+            S_SAVE_SLOT => self.save_slot(ctx.input, &ctx.game),
             S_SAVE_NAME => self.save_name(ctx),
             S_SAVE_OVER => self.save_overwrite(ctx),
             S_PRACTICE | S_SPELL => {
@@ -749,8 +749,7 @@ impl ResultScreen {
     }
 
     // Result_CursorLeftRight over 2 entries, edge or repeat, SE 12.
-    fn yes_no_keys(&mut self, ctx: &Ctx) {
-        let inp = ctx.input;
+    fn yes_no_keys(&mut self, inp: Input) {
         if inp.pressed_or_repeat(LEFT) || inp.pressed_or_repeat(RIGHT) {
             self.cursor ^= 1;
             sound::play(sound::SELECT);
@@ -765,9 +764,8 @@ impl ResultScreen {
     }
 
     // State 10, Result_SaveReplay 0x45696F (16 §2.6): "save replay?"; entered with frame 9 after the end panel.
-    fn save_ask(&mut self, ctx: &mut Ctx) {
+    fn save_ask(&mut self, inp: Input, g: &gamemgr::Game) {
         if self.frame == 10 {
-            let g = &ctx.game;
             // Slow mode (Supervisor+0x1A4 bit 3, the no-record flag, is never set in retail code, 15 §3.2).
             let i = if g.game_slow() != 0 {
                 0x13
@@ -787,27 +785,29 @@ impl ResultScreen {
         if self.frame < 12 {
             return;
         }
-        self.yes_no_keys(ctx);
-        let inp = ctx.input;
+        self.yes_no_keys(inp);
         if inp.pressed(CANCEL) || inp.pressed(CONFIRM) && self.cursor == 1 {
             self.leave_save();
         } else if inp.pressed(CONFIRM) {
             sound::play(sound::OK);
-            self.set_state(S_SAVE_SLOT);
+            self.enter_slot_list();
             self.interrupt_all(12);
         }
     }
 
+    // Entry to state 12 (from 10, 13 and 14): create `replay` and read the 15 slot headers (16 §2.6 "at frame 0").
+    // The state body never runs with frame 0 (Result_Calc adds 1 after the state that set it), so this is done here.
+    fn enter_slot_list(&mut self) {
+        self.set_state(S_SAVE_SLOT);
+        crate::scoredat::storage_mkdir("replay");
+        self.slots = (1..=15).map(read_slot).collect();
+    }
+
     // State 12 (16 §2.6): the 15 slots, cursor from frame 20.
-    fn save_slot(&mut self, ctx: &mut Ctx) {
-        if self.frame == 0 {
-            crate::scoredat::storage_mkdir("replay");
-            self.slots = (1..=15).map(read_slot).collect();
-        }
+    fn save_slot(&mut self, inp: Input, g: &gamemgr::Game) {
         if self.frame < 20 {
             return;
         }
-        let inp = ctx.input;
         let d = if inp.pressed_or_repeat(UP) {
             -1
         } else if inp.pressed_or_repeat(DOWN) {
@@ -823,15 +823,15 @@ impl ResultScreen {
         if inp.pressed(CONFIRM) {
             sound::play(sound::OK);
             self.entry_date = crate::supervisor::date_md();
-            self.entry_score = ctx.game.stats.score10.clamp(0, 999_999_999) as u32;
-            let valid = self.slots[self.slot as usize].0;
+            self.entry_score = g.stats.score10.clamp(0, 999_999_999) as u32;
+            let valid = self.slots.get(self.slot as usize).is_some_and(|s| s.0);
             self.interrupt_all(if valid { 13 } else { 17 });
             self.vms[56 + self.slot as usize].pending_interrupt = 16;
             self.set_state(if valid { S_SAVE_OVER } else { S_SAVE_NAME });
             // Name pos +0x1C := 0 (the same field as the cursor), char cursor on END if LSNM was loaded.
             self.cursor = 0;
             self.name_pos = 0;
-            self.char_cursor = if ctx.game.lsnm_found { CELL_END } else { 0 };
+            self.char_cursor = if g.lsnm_found { CELL_END } else { 0 };
         } else if inp.pressed(CANCEL) {
             sound::play(sound::CANCEL);
             self.set_state(S_SAVE);
@@ -845,7 +845,7 @@ impl ResultScreen {
         if self.frame < 20 {
             return;
         }
-        self.yes_no_keys(ctx);
+        self.yes_no_keys(ctx.input);
         let inp = ctx.input;
         if inp.pressed(CONFIRM) && self.cursor == 0 {
             self.interrupt_all(17);
@@ -853,7 +853,7 @@ impl ResultScreen {
             self.set_state(S_SAVE_NAME);
         } else if inp.pressed(CANCEL) || inp.pressed(CONFIRM) {
             sound::play(sound::OK);
-            self.set_state(S_SAVE_SLOT);
+            self.enter_slot_list();
         }
     }
 
@@ -873,7 +873,7 @@ impl ResultScreen {
             self.interrupt_all(2);
         } else if k.esc {
             sound::play(sound::OK);
-            self.set_state(S_SAVE_SLOT);
+            self.enter_slot_list();
             // QUIRK: name pos and list cursor are both +0x1C, so the list resumes on row = name length.
             self.cursor = self.name_pos;
         }
@@ -1539,6 +1539,41 @@ mod tests {
             let _ = img.save(format!("/tmp/th08_result_{tag}_{k}.png"));
         }
         ctx.gfx.present();
+    }
+
+    // 16 §2.6 (PR #27 review): state 12 entered from state 10 has its slot list before the first input frame (20), so
+    // a confirm there picks slot 0 instead of indexing an empty list.
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn save_slot_confirm_first_frame() {
+        let dir =
+            crate::settings::temp_dir().join(format!("th08_slot_test_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        crate::scoredat::set_save_dir(Some(dir.clone()));
+        let g = gamemgr::Game::default();
+        let mut r = ResultScreen::new(1);
+        r.vms = vec![AnmVm::default(); VM_COUNT];
+        r.text_vms = vec![AnmVm::default(); 28];
+        let confirm = Input {
+            held: SHOT,
+            ..Default::default()
+        };
+        // Result_Calc order: state, then frame += 1.
+        r.set_state(S_SAVE);
+        r.frame = 12;
+        r.save_ask(confirm, &g);
+        assert_eq!(r.state, S_SAVE_SLOT);
+        assert_eq!(r.slots.len(), 15);
+        r.frame += 1;
+        while r.frame < 20 {
+            r.save_slot(Input::default(), &g);
+            r.frame += 1;
+        }
+        r.save_slot(confirm, &g);
+        assert_eq!((r.state, r.slot), (S_SAVE_NAME, 0));
+        assert_eq!(r.vms[56].pending_interrupt, 16);
+        crate::scoredat::set_save_dir(None);
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

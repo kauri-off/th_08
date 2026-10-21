@@ -30,7 +30,7 @@
 - Ground-tile seams on stages 1/3 investigated: geometry is watertight (shared edges project to bit-identical vertices), sampling stays inside the sprite rect (stage 1 row 339 reads texel row 1.52 of sprite (1,1) 254x254), clamp/point sampling don't change them, a white texture removes them → the sprite's first and last rows simply don't match in the data. Not a renderer bug.
 
 - `src/ecl.rs` — .ecl parser (header, timelines, sub table, 12-byte sub / 8-byte timeline instructions, literal write-back into the loaded file) + argument signatures for ops 0–184. Test: all 24 files, every instruction size matches its signature, jumps land on instructions, sub ids valid. `cargo run --release --bin eclview <th08.dat> <x.ecl> [sub]` disassembles.
-- `src/eclvm.rs` — Ecl_Run per 07_ecl.md: main context + 4 threads with own call stacks, exact-time clock matching, wait, rank masks (incl. human/youkai bits), calls/returns (8 argument registers), interrupts skipping the pending instruction, all variables 10000–10100 with literal-destination write-back, 8 interpolation slots (linear/eased/Hermite, position → velocity), every opcode 0–184, natives 0/2/5/8/18/19/24/26–31 (others counted, later phases).
+- `src/eclvm.rs` — Ecl_Run per 07_ecl.md: main context + 4 threads with own call stacks, exact-time clock matching, wait, rank masks (incl. human/youkai bits), calls/returns (8 argument registers), interrupts skipping the pending instruction, all variables 10000–10100 with literal-destination write-back, 8 interpolation slots (linear/eased/Hermite, position → velocity), every opcode 0–184, natives 0–31 (4/7/9/11/13/16/21/25 by inferred readings, impl72).
 - `src/enemy.rs` — EnemyManager (calc 11, draw 8 for layers 0–1 / 11 for layers ≥ 2, ANM slots 7 `enemy.anm` / 8 `stgNenm.anm`): template defaults, timelines (all ops, stall, sync slots, boss waits, spawn blocking), spawn (+ immediate first run), movement modes 0–3 with mirror/clamp/follow, screen check, life thresholds / timeout re-runs, damage rules, death modes, drops (every-third table), child chains, boss slots, spell-card state + bonus decay, stage section requests (op 147 → `Stage::section_request`).
 - `src/bullet.rs` — BulletManager per 08 (calc 14, draw 13, `etama.anm` slot 6): 21 templates (5 VMs each, hitbox/size class from sprite height), 1536 slots + sentinel, visit order 0,1535..1, size-class LIFO draw lists, PlaceBullet (cursor, colour/effect recolouring, spawn effects, cancel guard), states 1–5, every extra command of op 111 incl. chaining, flag gating, sub-patterns and the motion handlers, off-screen counter rules, graze/hit/bomb-area collision, lasers (all states, rotated-rectangle collision with the startup/fade width/2 quirk, emitter), CancelAll/CancelBonus/CancelRadius, ghost toggle (natives 12/14). ECL calls SpawnPattern/laser spawn/items directly (no queues).
 - `src/item.rs` — ItemManager per 08 §8: 2096 slots, spawn-order list, spawn modes 0/1/2/3/5 (type 10 → time orb, power → converted at full power, one-probe time orbs), per-state update (fly-to-target, gravity, collection line, magnet), collection effects (power levels, point value formula, extends table, bombs, 1up, stars, time orbs), draw with off-top arrows. Wired to enemy drops, ECL item ops and bullet/laser cancels.
@@ -57,7 +57,7 @@
 - Spell end (ECL 123): capture → score bonus, spells +1, time bonus formula (11 §8), popups; enemies freed by the dialogue's destroy step when they have no death sub left (4A/4B midboss).
 - Debug: `TH08_INVULN=1` (no deaths), `TH08_TURBO=<n>` (n logic frames per drawn frame, no pacing). Verified: dialogue on the stage 1 boss, HUD during play, pause menu, continue menu (Yes → continue), stage-clear panel + "Press Shot Button", 4A/4B by team, Final A/B choice (solo) → 6B, full scripted runs 1 → 2 → 3 → 4A/4B → 5 → 6A → ending stub → result stub → menu → new game, Extra → result. Tests: routing, clock advance, rank, score roll, every msg file, wait/skip/release, final-route resolution.
 
-- `src/menu.rs` — main menu per 12 §1–2 (calc 4, draw 3, `title01.anm` slot 20, 142 VMs): top menu (locked items skipped, descriptions, Quit fade + exit), difficulty, character/team select (Extra unlock, 12 choices), practice stage select (ASCII list), option screen bound to `src/config.rs` (lives/bombs/graphic/BGM/SE volumes with the 1 − (1 − v/100)³ curve, mode, slow, reset); key config, replay and spell practice are stubs that return. Key repeat (30 frames, every 8) in `src/input.rs`. Returning from a practice game reopens the practice screens. `src/supervisor.rs`: boot logo (th08logo.jpg + nowloading, 60 frames) → menu; Result / Ending / Music Room stubs. `TH08_UNLOCK=1` unlocks everything.
+- `src/menu.rs` — main menu per 12 §1–2 (calc 4, draw 3, `title01.anm` slot 20, 142 VMs): top menu (locked items skipped, descriptions, Quit fade + exit), difficulty, character/team select (Extra unlock, 12 choices), practice stage select (ASCII list), option screen bound to `src/config.rs` (lives/bombs/graphic/BGM/SE volumes with the 1 − (1 − v/100)³ curve, mode, slow, reset); key config, replay and spell practice are stubs that return. Key repeat (30 frames, every 8) in `src/input.rs`. Returning from a practice game reopens the practice screens. `src/supervisor.rs`: boot logo (th08logo.jpg + nowloading, 60 frames) → menu; Result / Ending / Music Room scenes. `TH08_UNLOCK=1` unlocks everything.
 - `src/sound.rs` + `src/audio.rs` — SE per 13 §1 + 10 §10: 46-entry table (wave, 1/100 dB), per-frame queue (12 ids, 128 pans each, average pan), Sound_PlayAt pan from x, wav parser (PCM 8/16, mono/stereo), one voice per id mixed in the cpal callback (web too) with dB → gain and pan attenuation, SE / BGM volume from the config. Hooked at shots, graze, death, extend, bombs, ECL 124/181/children/spell start, enemy damage/death/mode change, spell end/capture, bullet spawn/ex sounds, items/power-up, boss timer warnings, HUD events, pause/continue/menu cursor. `TH08_SE_LOG=1` logs the flushed queue per frame.
 - `src/effect.rs` — effect manager per 13 §2 (calc 13, draw 12): 653 slots (ring cursor 0–511, high 512–639, fixed 640–652), the 66-type table with per-type init (RNG draws as specified) / update, draw lists A–E (list D after bullets, B billboards in the stage high draw), ring renderer (plain / ellipse / wavy). Spawns: shot hits (3, 5), enemy death bursts and drops, player hit/death (6 ×16, rings 59 / 12), graze, focus switch / youkai aura / gauge-max aura, bomb invulnerability ring, power conversion, ECL 128/139/140/174, natives 3/6/20 and 5, spell-card ring 39/52 (+ capture recolour). ScreenEffect types 0–7 (fades, flash, shake with 2 RNG draws/frame) and ECL natives 1/10/15/17. Spell-card background (13 §5): effNN.anm slot 9, two VMs, stage layers hidden after 60 frames, removed by Spell_End (also on boss death). Score popups (13 §4) in `src/ascii.rs`: 720 + 3 slots, rise 0.5/frame, 60 frames, fade sprites, alpha by distance to the player; callers: items, cancel bonus, kill_all.
 - Debug: `TH08_SCREEN_FX=<frame>:<type>,<p0>,<p1>,<p2>,<p3>` queues a screen effect at that game frame. Verified by screenshots: boot logo, top menu, difficulty, character select (team + solo), options, practice list, game from the menu, enemy death burst, player death ring + sparks, spell background + ring (stage 1 boss), flash, shake (ANM sprites + text offset), popups. Open questions for the dirty room: `specs/IMPL9_QUESTIONS.md` (hit-spark rate, spell-ring texture axis, …).
@@ -227,7 +227,7 @@
   flag 0, `@r`, `@s`, `@w`, `@z`), Ctrl fast-forward ×9 when skip-allowed. Draw: picture source rect (x, y) 640×480,
   text VMs, fade overlay stepped per draw. Text lines use Text_RenderToVm with outline −1 (±1 px, new
   `Raster::render_outline`); `Gfx::image_rect` copies a source rectangle. Removal → scene 6 (result name entry) → title.
-  Music room stays a stub. Unlock notices (16 §4) not done.
+  Music room done (impl70, `src/musicroom.rs`). Unlock notices (16 §4) not done.
 - Debug: `TH08_ENDING=<shot 0–11><a|b|c>` (bad / good 6A / good 6B) or `TH08_ENDING=<file>.end` starts that ending from
   boot (`TH08_RANK`, `TH08_CONTINUES`, `TH08_PLAYER` for the file form). The scene-switch log line shows the calc frame.
 - Verified by screenshots (bad end00a pages, good end00b / end03c, staff roll start / credits / end, result panel at
@@ -370,6 +370,14 @@
   Result_OnRegister (modes 0/1 in `on_register`, mode 2 in `save_score(flush)`), so equal scores flip per load/save
   (15 §2.3); `ranking` keeps the in-memory order and puts entries above equal default rows. Unit tests for all four.
   Traces not run (cloud). SPEC-GAP 134 → 129. Questions: `docs/briefs/IMPL66_QUESTIONS.md`.
+- impl67 (audit §B th08.cfg, frame skip, cloud, 2026-10-21): `Config` keeps every th08.cfg field (pad buttons, stick
+  thresholds, frame skip +0x23, ShotSlow +0x26, debug flags +0x38 with bit 0 forced, padding and unused bytes), so
+  `to_bytes` writes the file back as loaded. `Config::load` (15 §1.2, 02 §1) probes the thbgm.dat header (bad header =
+  startup error; missing + defaults = music 2); `Ctx::load_with` reads th08.cfg (port save, else the game folder),
+  writes it back at once and again in `exit_save` (native: next to score.dat; web: localStorage). `Ctx::draw` runs
+  the draw chain only when the i8 skip counter reaches cfg +0x23 (00 §2). Supervisor +0x154 4000-frame check: not in
+  the spec (question). Unit tests: round trip, load rules. Traces not run (cloud). SPEC-GAP 99 → 95 (`grep -c`
+  lines). Questions: `docs/briefs/IMPL67_QUESTIONS.md`.
 - impl60 (audit A.37, A.38, A.39, cloud, 2026-10-20): the stage-clear frame sets loading := 1 and score_display :=
   score for every stage; practice, Extra, 6A/6B and the night-over ending return 3 before the confirm test, which
   then runs on the next frame; the old GM's later calcs only count loading frames (no loader behind them) until the
@@ -520,6 +528,21 @@
   interrupt 1 (07 §12). `Spell_End` sets the bomb cooldown +0xE2A6C := 16 (07 §11.1); the decrement moved to the top of
   `update_bomb` and is skipped on a forced start (09 §1.1). Unit tests for the cooldown, `Spell_End` and the
   slow-down. Traces not run (cloud). SPEC-GAP 99 → 101 (src). Questions: `docs/briefs/IMPL53_QUESTIONS.md`.
+- impl70 (audit §B): music room scene 8 (16 §5.1–§5.3) in `src/musicroom.rs`, replacing the Supervisor stub:
+  musiccmt.txt parser (blank lines dropped, 7 comment lines, 32 entries), heard flags copied from PLST+0x208, title list
+  (music00.anm slot 0x17, heard title / `？？？？？？？？` with their colours and outlines, 10-row window, numbers, cursor),
+  state 0/1 calc (interrupts, Up/Down wrap, Shot/Enter `Music_PlayFile` + playing-title VM, Ctrl fade 8 s, R replay,
+  Bomb/ESC → scene 1), comment reveal at sub-frames 10–22 with the warning table for unheard tracks. `text::Raster`
+  takes an outline colour. Music mode cfg +0x1F = 0 (02 §4): `Audio` plays, loads and fades nothing; MIDI stays a
+  SPEC-GAP. Unit tests for the parser, title / unlock texts, cursor window and music off. Traces not run (cloud).
+  SPEC-GAP 99 → 111 (src). Questions: `docs/briefs/IMPL70_QUESTIONS.md`.
+
+- impl72 (audit §B, cloud, 2026-10-21): ECL natives 4 / 7 / 21 warp live bullets that leave the outer zone into the
+  inner one (scaled about the shared centre, direction reversed, `BulletManager::warp`); 9 / 11 / 25 hit-test a
+  590 × 128 / 192 / 224 box at the caller once its context clock reaches 12; 13 requests stage tint 0xFFC03030;
+  16 sets var 10038 = 60 and the caller's var 10019 on chained children near a flag-0x100000 bullet (07 §12). The
+  §12 table leaves the details open: SPEC-GAP 99 → 103 (src), questions `docs/briefs/IMPL72_QUESTIONS.md`. Unit tests
+  for natives 4, 9, 13, 16. Traces not run (cloud).
 - impl69 (audit §B replay save, cloud, 2026-10-21): Result states 10–14 (16 §2.6): "save replay?" with the
   slow-mode / continue messages (interrupt from VM 4), slot list `replay/th8_01..15.rpy` (headers read at frame 0),
   overwrite prompt, name entry on the §2.2 grid writing +0x58 (pre-filled from LSNM), save → LSNM, draw of VMs 49–54

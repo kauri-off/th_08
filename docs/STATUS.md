@@ -362,6 +362,13 @@
   Result_OnRegister (modes 0/1 in `on_register`, mode 2 in `save_score(flush)`), so equal scores flip per load/save
   (15 §2.3); `ranking` keeps the in-memory order and puts entries above equal default rows. Unit tests for all four.
   Traces not run (cloud). SPEC-GAP 134 → 129. Questions: `docs/briefs/IMPL66_QUESTIONS.md`.
+- impl60 (audit A.37, A.38, A.39, cloud, 2026-10-20): the stage-clear frame sets loading := 1 and score_display :=
+  score for every stage; practice, Extra, 6A/6B and the night-over ending return 3 before the confirm test, which
+  then runs on the next frame; the old GM's later calcs only count loading frames (no loader behind them) until the
+  scene switch (`GameManager::stage_end`, 11 §4 step 1). RANK_STATE boots as 0, 0, 0, 0 (11 §2). A.39 was already
+  fixed by impl45 (`EnemyMgr_Calc` counts 0x164D30C outside dialogue); the dead `Game::play_time` duplicate is gone.
+  Unit tests for the clear-frame paths and the boot rank. Traces not run (cloud). SPEC-GAP 115 → 114.
+  Questions: `docs/briefs/IMPL60_QUESTIONS.md`.
 - impl48 (audit A.50, A.51, A.52, cloud, 2026-10-20): BGM volume uses the square curve `config::bgm_volume_curve`
   (02 §4 `0x472840`; the cube stays for SE); `Audio::fade_bgm` queues command 5 with trunc(secs), started in
   Sound_Update (`start_fade`) and ticked at the top of the Supervisor calc (`tick_fade`): p = n·5000/N − 5000, linear
@@ -385,6 +392,13 @@
   previous scene was 5 (`menu::title_music`, 00 §3.2); resulttext.anm in ANM slot 22 (00 §3.2). Unit tests for the
   volume steps and the music rule. Traces not run (cloud). SPEC-GAP 134 → 131 (src). Questions:
   `docs/briefs/IMPL64_QUESTIONS.md`.
+- impl51 (audit A.13, A.14, A.66, cloud, 2026-10-20): `spawn_child` (ops 90–92) applies bit 8, bit 11, layer,
+  contact off and the aura **after** the child's spawn-time `Ecl_Run` (07 §10.5); aura VM bit 17 := flags A bit 2 and
+  VM +0x14 negated for an odd slot; the chain link (parent, tail +8, child +4, spawner +0x3380) is written last, with
+  the tail looked up before the spawn: a root links after its last child, a chained child after itself (cutting the
+  rest off). `spawn_prepare` writes only pos; prev pos / final pos keep the template's (0, 0, 0) (07 §4.1). Unit
+  tests for all three. Traces not run (cloud). SPEC-GAP 115 → 115 (2 removed, 2 new). Questions:
+  `docs/briefs/IMPL51_QUESTIONS.md`.
 - impl50 (audit A.12, A.15, A.16, cloud, 2026-10-20): `EnemyManager::kill_all` (op 95, op 123 `Spell_End`, death
   modes 0–2) and `kill_non_bosses` (threshold / timeout switch) have no self test (07 §7 op 95, §10.2): the ECL
   caller is put back in its slot with its running main context (`Exec::with_self_in_slot`), so a non-boss caller
@@ -397,11 +411,20 @@
   the bomb active flag +0xE2A7C is no longer cleared at the bomb end but by the next failed normal start test (09 §1.1);
   game over leaves lives and bombs unchanged (09 §6.2). Unit tests for all three. Traces not run (cloud).
   SPEC-GAP 134 → 132. Question: IMPL54_QUESTIONS.md.
+- impl55 (audit A.24, A.25, A.27, cloud, 2026-10-20): `Player::frame` step 1: while the freeze byte 0x160F534 is set
+  the youkai aura (fixed slot 2) and gauge-max aura (slot 8) get VM flag 0x80000 and the calc returns, else the flag is
+  cleared (09 §1); the focus-switch +0xE2A9C := 0 now only on the team sprite reset (09 §3); spell practice (bit 14):
+  load timer 10, respawn leaves the invulnerability timer at 30 (09 §6.3, §6.4). Unit tests for A.24 and A.27 (A.25
+  needs ANM scripts). Traces not run (cloud). SPEC-GAP 115 → 111. No questions.
 - impl59 (audit A.34, A.35, A.36, cloud, 2026-10-20): `Stage::step` returns at once while GameFlags bit 10 (player
   `freeze_bullets`): no script, camera, clock, sparkle flag or frame counter (06 §5); sparkles spawn from frame 0 in
   spell practice (GameFlags bit 14, `Stage::sparkle_due`, 06 §5); a billboard appends a sparkle point only when it is
   drawn (0 ≤ z ≤ 1), `v < fog_near` quirk in `sparkle_point_ok` (06 §11.1). Unit tests for all three. Traces not run
   (cloud). SPEC-GAP 148 → 145. No questions.
+- impl58 (audit A.32, cloud, 2026-10-20): a player bullet entering its hit state follows the exact 09 §4.5 order:
+  rotation z saved → `AnmFile_SetScript` (new `AnmManager::file_set_script`, VM pos / pos offset kept) → rotation z
+  restored → effect 5 → pos z 0.1 → state 2; flag 0x2000 is no longer re-set (only the hit script sets it). Unit test.
+  Traces not run (cloud). SPEC-GAP 115 → 114. No questions.
 - impl57 (audit A.29, A.30, A.31, cloud, 2026-10-20): Yukari's option always runs the animation test after the attack
   test, on the sub-state the frame entered with, so it can overwrite sub 3 / interrupt 3 while the aimed pointer stays
   (14 §3.1); a shot origin reads the option pos whatever the option's state (09 §4.3); laser init 4 and update 5 both

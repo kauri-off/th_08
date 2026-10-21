@@ -396,7 +396,7 @@ pub struct Player {
     pub laser_slots: [crate::pshot::LaserSlot; crate::pshot::LASER_SLOTS],
     // +0xE2A68 deathbomb counter / bomb-allowed counter (09 §6).
     pub deathbomb: i32,
-    // +0xE2A6C decremented while > 0; bombs need 0.
+    // +0xE2A6C := 16 by Spell_End (07 §11.1); decremented atop Player_UpdateBomb; a normal bomb start needs 0.
     pub bomb_cooldown: i32,
     // +0xE2A70 respawn clear frames (09 §6.3).
     pub respawn_clear: i32,
@@ -1210,10 +1210,6 @@ impl Player {
         crate::ascii::gauge_fade(self.pos);
         self.targets = [[-999.0, -999.0, 0.0]; 2];
         self.boss_target = false;
-        // SPEC-GAP: 09 §1.1 decrements +0xE2A6C atop Player_UpdateBomb, not on a forced start; here every frame (IMPL46 Q2).
-        if self.bomb_cooldown > 0 {
-            self.bomb_cooldown -= 1;
-        }
         if !self.env.dialogue {
             let st = &mut self.stats;
             st.stage_frames += 1;

@@ -419,8 +419,12 @@ impl Player {
         inp: &input::Input,
         items: &mut Option<&mut ItemManager>,
     ) {
+        let forced = self.forced_bomb != 0 && self.deathbomb == 1;
+        // Cooldown +0xE2A6C (09 §1.1): decremented while ≠ 0 at the top, except on a forced-start call.
+        if !forced && self.bomb_cooldown != 0 {
+            self.bomb_cooldown -= 1;
+        }
         if !self.bombing {
-            let forced = self.forced_bomb != 0 && self.deathbomb == 1;
             let mut pressed = inp.pressed(input::BOMB)
                 && !self.env.dialogue
                 && self.deathbomb != 0
@@ -1591,6 +1595,25 @@ mod tests {
         assert!(p.bomb_active);
         p.step(&mut anm, &press(0));
         assert!(!p.bomb_active);
+    }
+
+    // 09 §1.1: the cooldown blocks a normal start, is decremented atop Player_UpdateBomb, but not on a forced start.
+    #[test]
+    fn bomb_cooldown() {
+        let (mut p, mut anm) = ready(4);
+        p.bomb_cooldown = 2;
+        p.update_bomb(&mut anm, &press(input::BOMB), &mut None);
+        assert!(!p.bombing && p.bomb_cooldown == 1);
+        p.update_bomb(&mut anm, &press(0), &mut None);
+        assert_eq!(p.bomb_cooldown, 0);
+        p.update_bomb(&mut anm, &press(input::BOMB), &mut None);
+        assert!(p.bombing);
+        let (mut p, mut anm) = ready(4);
+        p.bomb_cooldown = 16;
+        p.forced_bomb = 1;
+        p.deathbomb = 1;
+        p.update_bomb(&mut anm, &press(0), &mut None);
+        assert!(p.bombing && p.bomb_cooldown == 16);
     }
 
     // 09 §4.5: circle = point test on the enemy centre, `≤ r²`; rectangles overlap the box inclusively.

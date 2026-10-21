@@ -138,6 +138,9 @@ pub struct Game {
     pub watched_replay: bool,
     // Port-only phase of the slowdown-reproduction pattern.
     slow_phase: u32,
+    // gm+0x2D slow-mode skipped frame (11 §2): while set the Supervisor OR-accumulates input (11 §7) and ESC
+    // does not pause (11 §4 step 4). Its only setter, slow mode (step 10), is not implemented, so it stays 0.
+    pub slow_skip: u8,
     // 0x164D2C4 RNG state captured at stage start (11 §1.3).
     pub stage_seed: u16,
     pub stages_started: u32,
@@ -204,6 +207,7 @@ impl Default for Game {
             noclip: false,
             watched_replay: false,
             slow_phase: 0,
+            slow_skip: 0,
             stage_seed: 0,
             stages_started: 0,
             frame_skip: false,
@@ -1013,6 +1017,7 @@ impl Task<Ctx> for GameManager {
         if g.paused == 0
             && g.game_over == 0
             && g.flags & F_DEMO == 0
+            && g.slow_skip == 0
             && ctx.input.pressed(crate::input::PAUSE)
         {
             g.paused = 1;

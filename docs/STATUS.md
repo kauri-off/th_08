@@ -543,6 +543,13 @@
   16 sets var 10038 = 60 and the caller's var 10019 on chained children near a flag-0x100000 bullet (07 §12). The
   §12 table leaves the details open: SPEC-GAP 99 → 103 (src), questions `docs/briefs/IMPL72_QUESTIONS.md`. Unit tests
   for natives 4, 9, 13, 16. Traces not run (cloud).
+- impl73 (audit §B, cloud, 2026-10-21): `Replay_FrameHook` (11 §1.4) at calc prio 7 while recording, and in playback
+  when header +6 ≠ 0: +0xD8 := RNG state, RNG call counter := 0. Debug playback (15 §3.1) reads 6-byte frames
+  {input, flag, RNG} and forces the RNG. gm+0x2D (`Game::slow_skip`): the Supervisor OR-accumulates input while it is
+  set (11 §7) and ESC does not pause (11 §4 step 4); its setter (slow mode, step 10) is still missing. Sound flush
+  (`Ctx::sound_update` in place) after SE 10 on a top-menu confirm (12 §2.2) and on Left in the card list (16 §6.2).
+  Unit tests: frame hook, frame words, input accumulation. SPEC-GAP 110 → 107 (src). Traces not run (cloud).
+  Questions: `docs/briefs/IMPL73_QUESTIONS.md`.
 - impl69 (audit §B replay save, cloud, 2026-10-21): Result states 10–14 (16 §2.6): "save replay?" with the
   slow-mode / continue messages (interrupt from VM 4), slot list `replay/th8_01..15.rpy` (headers read at frame 0),
   overwrite prompt, name entry on the §2.2 grid writing +0x58 (pre-filled from LSNM), save → LSNM, draw of VMs 49–54

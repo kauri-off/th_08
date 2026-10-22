@@ -8,4 +8,4 @@ Done: waves 1–6 (audit §A.0–A.1 and §B closed; PR #29 = impl73 still open)
 | wave | tasks |
 |---|---|
 | 7 | ✅ 73 (#29), 74, 76, 77 |
-| 8 | 75 |
+| 8 | ✅ 75 |

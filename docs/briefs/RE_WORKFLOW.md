@@ -13,7 +13,7 @@ All paths relative to the repo root. Ghidra project: `re/ghidra/th08.gpr` (pre-a
 - `globals_xref.tsv` only sees direct address references; writes through a struct base pointer need a manual check.
 - REA MCP (`mcp__rea__*`, provider ghidra): fresh import, not `re/ghidra`; first query ~40 s. No thiscall fix/signatures (`this` = `in_ECX`, helper args dropped) — check struct offsets with `fn.sh`.
   Good for `xrefs` (<0.1 s), `search_bytes` (whole image), `get_call_graph`. `set_addresses_names` works but is session-scoped and costs ~40 KB context: apply only the names you need.
-- Runtime (wine via PortProton, not on PATH): `~/PortProton/data/dist/WINE_LG_11-1/bin/wine`, `~/PortProton/data/dist/PROTON_LG_10-28/bin/wine` (also flatpak `ru.linux_gaming.PortProton`), prefix `~/PortProton/data/prefixes/DEFAULT` (has winedbg.exe). Use a separate WINEPREFIX for experiments; never modify the game dir. gdb, rizin, Xvfb are installed.
+- Runtime: system wine (`wine`, Arch package, 11.x, on PATH), prefix `re/work/wine` (win64, created by `wineboot -i`; has winedbg.exe). The game folder is `/home/anon/Games/Touhou Collection/TH08 - Imperishable Night/TH08 - Imperishable Night/` (read-only); scripts run the copy `re/work/game`. Use a separate WINEPREFIX for experiments; never modify the game dir. gdb, rizin, Xvfb are installed.
 - "Only call site / only writer" claims: prove them with a byte-pattern search, then check every non-constant site against the data dumps (ecl_dis, anm_dis…).
 
 ## Persistent memory (survives compaction)

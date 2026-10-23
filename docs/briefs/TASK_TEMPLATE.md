@@ -1,7 +1,7 @@
 # Dirty-room task (common preamble for every RE task)
 
 You are the DIRTY-ROOM reverse engineer for a clean-room Rust reimplementation of Touhou 8 (Imperishable Night).
-Game (read-only): `/home/anon/Downloads/Touhou Collection/TH08 - Imperishable Night/TH08 - Imperishable Night/`
+Game (read-only): `/home/anon/Games/Touhou Collection/TH08 - Imperishable Night/TH08 - Imperishable Night/`
 
 Layout (repo `/home/anon/Projects/th_08`):
 - `re/` — your workspace: `ghidra/` project, `extracted/` dumps, `tools/`, `ghidra_scripts/`, `symbols.csv`, `NOTES.md`, drafts.

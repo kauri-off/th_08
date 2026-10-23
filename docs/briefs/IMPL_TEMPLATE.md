@@ -8,7 +8,7 @@ Allowed inputs:
   `docs/briefs/`. `specs/changelog/answers_*.md` are only a changelog with evidence; if a fact is there but not in a numbered spec,
   report it as a question.
 - The repo: `src/`, `docs/` (README → STATUS → DECISIONS → FORMATS), `web/`, Cargo files.
-- The game data files at `/home/anon/Downloads/Touhou Collection/TH08 - Imperishable Night/TH08 - Imperishable Night/`
+- The game data files at `/home/anon/Games/Touhou Collection/TH08 - Imperishable Night/TH08 - Imperishable Night/`
   (th08.dat, thbgm.dat) — read-only, loaded at runtime; never copy assets into the repo.
 
 FORBIDDEN (clean-room boundary):

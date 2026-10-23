@@ -610,6 +610,13 @@
 - impl78 (user report, 2026-10-23): boss orbit squares (effect 13, ECL op 128, 13 §2.6b) drifted off the playfield:
   op 128's target radius d holds f32 bits (96.0 / 128.0) but was converted as an integer (≈ 1.1e9), so the radius
   grew forever. Now read as f32 bits (SPEC-GAP). Questions: `docs/briefs/IMPL78_QUESTIONS.md`.
+- impl80 (audit 85, 90, 103, cloud, 2026-10-23): native 8 (07 §12) walks the parent's +8 chain with no alive test,
+  writes int var 10037 per member, int vars 10005 / 10006 / 10007 on the caller, and adds the leader's orbit velocity
+  when the 10007 counters differ. Natives 9 / 11 / 25 call the new `Player::laser_test` (`Player_LaserTest`, 09 §6.1,
+  f32 box edges): origin = pos − (float vars 10016, 10017), main VM rotation z, small box with graze when e+0x2E14
+  changed to a multiple of 12, big box every call, no warning phase. Natives 28 / 29: speed and interrupt first,
+  29 scales by 1/speed and restores only sprites 0x60–0x6F. Unit tests for natives 8, 9, 11. Traces not run (cloud).
+  SPEC-GAP 112 → 111 (src). Questions: `docs/briefs/IMPL80_QUESTIONS.md`.
 ## Run
 WebGPU in Playwright: headless Chromium only has SwiftShader and loses the device on the first canvas present (even a bare JS triangle); use a headed launch with `--enable-unsafe-webgpu --enable-features=Vulkan --ignore-gpu-blocklist --ozone-platform=x11 --force-device-scale-factor=1` (on Wayland at 1.25 scale `devicePixelContentBoxSize` makes the canvas 800x600 even with an emulated DPR of 1).
 Web: `web/build.sh`, serve `web/dist` (e.g. `python3 -m http.server -d web/dist 8087`). Verified in Playwright Chromium (WebGL2 fallback, OPFS cache works).

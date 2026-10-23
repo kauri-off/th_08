@@ -614,6 +614,26 @@
   max = s·0.5 + c, inclusive; 09 §4.5). The quitting frame runs calc + Sound_Update only, no draw and no Present
   (`Ctx::run_frame`, app loop; 15 §2.2, 00 §2). A forced bomb start jumps past the +0xE2A6C decrement, the bombing
   branch and the start tests (09 §1.1). Unit tests; traces not run (cloud). SPEC-GAP 112 → 112 (src). No questions.
+- impl81 (audit 87, 88, 92, 95, 99, 100, cloud, 2026-10-23): `EnemyMgr_Calc` (07 §10.1 step 1) runs the op-176
+  whole-playfield box, then `EnemyMgr_TimeRank`, then the list resets and timelines. Held enemies (step 2: flags B
+  bit 7, or A bit 30 while bombing / player state ≠ 0) skip react, ECL, movement, screen check, VMs, collision and
+  death; only the e+0x2E14 decrement and the step-7 tail run. `kill_all` (op 95): final pos recomputed, popups
+  2000 then +30, items/popups also at every 6th trail entry, `Enemy_ChainUnlink` (original semantics, §10.3a: a
+  root only clears its own links) on every victim, death sub via `Ecl_SetSub` only. Op 95 / 123 on the caller's
+  own main context keep the local ip in the old sub (death sub consumed, never run); from a thread the threads are
+  kept. Unit tests for all of it. Traces not run (cloud). SPEC-GAP 112 → 110 (src).
+  Questions: `docs/briefs/IMPL81_QUESTIONS.md`.
+- impl80 (audit 85, 90, 103, cloud, 2026-10-23): native 8 (07 §12) walks the parent's +8 chain with no alive test,
+  writes int var 10037 per member, int vars 10005 / 10006 / 10007 on the caller, and adds the leader's orbit velocity
+  when the 10007 counters differ. Natives 9 / 11 / 25 call the new `Player::laser_test` (`Player_LaserTest`, 09 §6.1,
+  f32 box edges): origin = pos − (float vars 10016, 10017), main VM rotation z, small box with graze when e+0x2E14
+  changed to a multiple of 12, big box every call, no warning phase. Natives 28 / 29: speed and interrupt first,
+  29 scales by 1/speed and restores only sprites 0x60–0x6F. Unit tests for natives 8, 9, 11. Traces not run (cloud).
+  SPEC-GAP 112 → 111 (src). Questions: `docs/briefs/IMPL80_QUESTIONS.md`.
+- impl79 (audit 83, 89, 94, 104, cloud, 2026-10-23): `PlaceBullet` velocity = polar of the unwrapped pattern angle
+  (08 §3.2); `CancelBonus` cancels every alive laser without the flag-bit-2 test and sets the cancel guard (08 §7);
+  scripts 111 / 112 (types 16 / 17) → hitbox 4, class 4 (08 §2.1); bullet +0x218 at spawn = template base sprite
+  (05 §2). Unit tests for each. Traces not run (cloud). SPEC-GAP 112 → 111 (src). No questions.
 ## Run
 WebGPU in Playwright: headless Chromium only has SwiftShader and loses the device on the first canvas present (even a bare JS triangle); use a headed launch with `--enable-unsafe-webgpu --enable-features=Vulkan --ignore-gpu-blocklist --ozone-platform=x11 --force-device-scale-factor=1` (on Wayland at 1.25 scale `devicePixelContentBoxSize` makes the canvas 800x600 even with an emulated DPR of 1).
 Web: `web/build.sh`, serve `web/dist` (e.g. `python3 -m http.server -d web/dist 8087`). Verified in Playwright Chromium (WebGL2 fallback, OPFS cache works).

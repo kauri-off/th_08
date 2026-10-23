@@ -617,6 +617,10 @@
   changed to a multiple of 12, big box every call, no warning phase. Natives 28 / 29: speed and interrupt first,
   29 scales by 1/speed and restores only sprites 0x60–0x6F. Unit tests for natives 8, 9, 11. Traces not run (cloud).
   SPEC-GAP 112 → 111 (src). Questions: `docs/briefs/IMPL80_QUESTIONS.md`.
+- impl79 (audit 83, 89, 94, 104, cloud, 2026-10-23): `PlaceBullet` velocity = polar of the unwrapped pattern angle
+  (08 §3.2); `CancelBonus` cancels every alive laser without the flag-bit-2 test and sets the cancel guard (08 §7);
+  scripts 111 / 112 (types 16 / 17) → hitbox 4, class 4 (08 §2.1); bullet +0x218 at spawn = template base sprite
+  (05 §2). Unit tests for each. Traces not run (cloud). SPEC-GAP 112 → 111 (src). No questions.
 ## Run
 WebGPU in Playwright: headless Chromium only has SwiftShader and loses the device on the first canvas present (even a bare JS triangle); use a headed launch with `--enable-unsafe-webgpu --enable-features=Vulkan --ignore-gpu-blocklist --ozone-platform=x11 --force-device-scale-factor=1` (on Wayland at 1.25 scale `devicePixelContentBoxSize` makes the canvas 800x600 even with an emulated DPR of 1).
 Web: `web/build.sh`, serve `web/dist` (e.g. `python3 -m http.server -d web/dist 8087`). Verified in Playwright Chromium (WebGL2 fallback, OPFS cache works).
